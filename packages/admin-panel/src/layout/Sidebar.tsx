@@ -27,38 +27,48 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'flex flex-col shrink-0 transition-all duration-200 border-r',
-        sidebarCollapsed ? 'w-12' : 'w-52'
+        'flex flex-col shrink-0 transition-all duration-200',
+        sidebarCollapsed ? 'w-14' : 'w-52'
       )}
       style={{
-        background: 'var(--bg)',
-        borderColor: 'var(--border)',
+        background: 'var(--surface-1)',
+        borderRight: '1px solid var(--border)',
       }}
     >
       {/* Wordmark */}
       <div
         className={cn(
-          'flex items-center border-b',
+          'flex items-center border-b shrink-0',
           sidebarCollapsed ? 'justify-center' : 'px-4 gap-2.5'
         )}
         style={{ height: 53, borderColor: 'var(--border)' }}
       >
-        <span
-          className="font-bold text-[15px] leading-none shrink-0 font-mono"
-          style={{ color: 'var(--accent)' }}
-        >
-          E
-        </span>
+        {/* Logo mark */}
+        <div style={{
+          width: 26,
+          height: 26,
+          borderRadius: 6,
+          background: 'var(--accent)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--noise)', backgroundSize: '256px', opacity: 0.15, pointerEvents: 'none' }} />
+          <span style={{ fontFamily: 'Geist Mono', fontWeight: 800, fontSize: 13, color: '#fff', position: 'relative', lineHeight: 1 }}>E</span>
+        </div>
         {!sidebarCollapsed && (
-          <span className="text-sm leading-tight" style={{ color: 'var(--fg)' }}>
-            <span className="font-semibold">ERP</span>
-            <span style={{ color: 'var(--fg-muted)' }}> Admin</span>
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--fg)', letterSpacing: '-0.01em' }}>ERP Admin</span>
+            <span style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)', letterSpacing: '0.1em', marginTop: 2 }}>PLATAFORMA</span>
+          </div>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-2 px-1.5 flex flex-col gap-px">
+      <nav className="flex-1 py-3 px-2 flex flex-col gap-0.5">
         {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
           const isActive = !!matchRoute({ to: path, fuzzy: true })
 
@@ -67,40 +77,48 @@ export function Sidebar() {
               key={path}
               to={path}
               className={cn(
-                'flex items-center h-8 rounded-[4px] transition-colors duration-100',
+                'flex items-center h-9 rounded-[6px] transition-colors duration-100',
                 'outline-none focus-visible:ring-1',
-                sidebarCollapsed ? 'justify-center w-full' : 'gap-2.5 px-2.5',
+                sidebarCollapsed ? 'justify-center w-full' : 'gap-2.5 px-3',
               )}
               style={{
                 color: isActive ? 'var(--accent)' : 'var(--fg-dim)',
                 background: isActive ? 'var(--accent-dim)' : 'transparent',
+                borderLeft: isActive && !sidebarCollapsed ? '2px solid var(--accent)' : '2px solid transparent',
+              }}
+              onMouseEnter={e => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'
+                  ;(e.currentTarget as HTMLElement).style.color = 'var(--fg)'
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isActive) {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent'
+                  ;(e.currentTarget as HTMLElement).style.color = 'var(--fg-dim)'
+                }
               }}
             >
               <Icon className={cn('shrink-0', sidebarCollapsed ? 'h-[17px] w-[17px]' : 'h-[15px] w-[15px]')} />
               {!sidebarCollapsed && (
-                <>
-                  <span className="text-sm flex-1" style={{ color: isActive ? 'var(--accent)' : 'var(--fg-muted)' }}>
-                    {label}
-                  </span>
-                  {isActive && (
-                    <span className="h-1 w-1 rounded-full shrink-0" style={{ background: 'var(--accent)' }} />
-                  )}
-                </>
+                <span className="text-sm flex-1" style={{ color: isActive ? 'var(--accent)' : 'inherit', fontWeight: isActive ? 600 : 400 }}>
+                  {label}
+                </span>
               )}
             </Link>
           )
 
           return sidebarCollapsed
             ? <Tooltip key={path} content={label} side="right">{linkEl}</Tooltip>
-            : linkEl
+            : <div key={path}>{linkEl}</div>
         })}
       </nav>
 
       {/* Collapse */}
-      <div className="p-1.5 border-t" style={{ borderColor: 'var(--border)' }}>
+      <div className="p-2 border-t" style={{ borderColor: 'var(--border)' }}>
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="flex items-center justify-center h-7 w-full rounded-[4px] transition-colors duration-100"
+          className="flex items-center justify-center h-8 w-full rounded-[6px] transition-colors duration-100"
           style={{ color: 'var(--fg-dim)' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)'; (e.currentTarget as HTMLElement).style.color = 'var(--fg)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--fg-dim)' }}
