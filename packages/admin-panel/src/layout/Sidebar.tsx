@@ -10,6 +10,7 @@ import {
   ClipboardList,
   CalendarDays,
   Users,
+  Palette,
 } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import { useUIStore } from '@/shared/store/ui'
@@ -30,7 +31,8 @@ const MAIN_NAV: NavItem[] = [
   { path: '/plans',     label: 'Planos',     icon: CreditCard,      allowedRoles: ['superadmin', 'sales'] },
   { path: '/segments',  label: 'Segmentos',  icon: Tag,             allowedRoles: ['superadmin'] },
   { path: '/analytics', label: 'Analytics',  icon: BarChart3,       allowedRoles: ['superadmin', 'sales'] },
-  { path: '/team',      label: 'Equipe',     icon: Users,           allowedRoles: ['superadmin'] },
+  { path: '/team',         label: 'Equipe',      icon: Users,   allowedRoles: ['superadmin'] },
+  { path: '/personalizar', label: 'Personalizar', icon: Palette, allowedRoles: ['superadmin'] },
 ]
 
 const TOOLS_NAV: NavItem[] = [

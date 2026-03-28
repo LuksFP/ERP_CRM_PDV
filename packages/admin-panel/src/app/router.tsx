@@ -21,6 +21,7 @@ const AnalyticsPage = lazy(() => import('@/modules/analytics/pages/AnalyticsPage
 const ServiceOrdersPage = lazy(() => import('@/modules/tools/pages/ServiceOrdersPage'))
 const AgendaPage = lazy(() => import('@/modules/tools/pages/AgendaPage'))
 const TeamPage = lazy(() => import('@/modules/team/pages/TeamPage'))
+const PersonalizarPage = lazy(() => import('@/modules/personalizar/pages/PersonalizarPage'))
 
 function PageLoader() {
   return (
@@ -169,6 +170,13 @@ const teamRoute = createRoute({
   component: withSuspense(TeamPage),
 })
 
+const personalizarRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: '/personalizar',
+  beforeLoad: superadminGuard,
+  component: withSuspense(PersonalizarPage),
+})
+
 // ─── ROUTER ──────────────────────────────────────────────────────
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -183,6 +191,7 @@ const routeTree = rootRoute.addChildren([
     serviceOrdersRoute,
     agendaRoute,
     teamRoute,
+    personalizarRoute,
   ]),
 ])
 

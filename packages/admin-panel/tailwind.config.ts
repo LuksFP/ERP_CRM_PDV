@@ -26,7 +26,7 @@ export default {
         mono: ['Geist Mono', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
-        btn: '4px',
+        btn: 'var(--btn-radius)',
         card: '8px',
         badge: '2px',
         input: '4px',

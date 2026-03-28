@@ -3,6 +3,7 @@ import { RouterProvider } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { router } from './router'
 import { useUIStore } from '@/shared/store/ui'
+import { useBrandStore, applyBrand } from '@/shared/store/brand'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,11 +26,19 @@ function ThemeProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function BrandProvider({ children }: { children: React.ReactNode }) {
+  const { config } = useBrandStore()
+  useEffect(() => { applyBrand(config) }, [config])
+  return <>{children}</>
+}
+
 export function AppProviders() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <RouterProvider router={router} />
+        <BrandProvider>
+          <RouterProvider router={router} />
+        </BrandProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )
