@@ -244,3 +244,47 @@ export interface SegmentTemplate {
   }>
   tenantCount: number
 }
+
+// ─── SERVICE ORDERS ──────────────────────────────────────────────
+export type ServiceOrderPriority = 'low' | 'medium' | 'high' | 'critical'
+export type ServiceOrderStatus = 'open' | 'in_progress' | 'waiting_client' | 'resolved' | 'closed'
+
+export interface ServiceOrderComment {
+  id: string
+  authorName: string
+  text: string
+  createdAt: string
+}
+
+export interface ServiceOrder {
+  id: string
+  number: string
+  tenantId: string
+  tenantName: string
+  title: string
+  description: string
+  priority: ServiceOrderPriority
+  status: ServiceOrderStatus
+  assignedTo: { id: string; name: string }
+  createdAt: string
+  updatedAt: string
+  resolvedAt: string | null
+  comments: ServiceOrderComment[]
+}
+
+// ─── AGENDA ──────────────────────────────────────────────────────
+export type AgendaItemType = 'task' | 'event' | 'reminder'
+export type AgendaItemPriority = 'low' | 'medium' | 'high'
+
+export interface AgendaItem {
+  id: string
+  title: string
+  description?: string
+  type: AgendaItemType
+  done: boolean
+  priority: AgendaItemPriority
+  dueDate: string | null
+  assignedTo: string
+  tags: string[]
+  createdAt: string
+}
