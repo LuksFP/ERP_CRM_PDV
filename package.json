@@ -1,0 +1,13 @@
+{
+  "name": "erp-crm-pdv",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter admin-panel dev",
+    "build": "pnpm --filter admin-panel build",
+    "preview": "pnpm --filter admin-panel preview"
+  },
+  "packageManager": "pnpm@8.15.0"
+}
