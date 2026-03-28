@@ -17,7 +17,7 @@ export function Header() {
   }
 
   return (
-    <header className="h-14 flex items-center justify-between px-6 bg-surface-1 border-b border-[var(--border)] shrink-0">
+    <header className="flex items-center justify-between px-6 border-b shrink-0" style={{ height: 53, background: 'var(--bg)', borderColor: 'var(--border)' }}>
       {/* Left: breadcrumb handled by pages */}
       <div />
 

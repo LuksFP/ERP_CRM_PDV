@@ -38,10 +38,10 @@ export function Sidebar() {
       {/* Wordmark */}
       <div
         className={cn(
-          'flex items-center h-[57px] border-b',
+          'flex items-center border-b',
           sidebarCollapsed ? 'justify-center' : 'px-4 gap-2.5'
         )}
-        style={{ borderColor: 'var(--border)' }}
+        style={{ height: 53, borderColor: 'var(--border)' }}
       >
         <span
           className="font-bold text-[15px] leading-none shrink-0 font-mono"

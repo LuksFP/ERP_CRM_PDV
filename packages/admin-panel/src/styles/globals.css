@@ -12,18 +12,18 @@
 
   /* ─── DARK THEME (default) ─────────────────────────────────── */
   .dark, :root {
-    --bg: #0C0A09;
-    --surface-1: #1A1714;
-    --surface-2: #231F1A;
-    --surface-3: #2C2722;
-    --border: rgba(214, 198, 172, 0.07);
-    --border-hover: rgba(214, 198, 172, 0.14);
-    --accent: #E2A336;
-    --accent-dim: rgba(226, 163, 54, 0.10);
-    --fg: #E8E0D4;
+    --bg: #0A0907;
+    --surface-1: #111009;
+    --surface-2: #19160F;
+    --surface-3: #221E16;
+    --border: rgba(214, 198, 172, 0.09);
+    --border-hover: rgba(214, 198, 172, 0.18);
+    --accent: #E8A830;
+    --accent-dim: rgba(232, 168, 48, 0.10);
+    --fg: #EDE5D8;
     --fg-muted: #A89F91;
-    --fg-dim: #6B6358;
-    --green: #5CB870;
+    --fg-dim: #5E584F;
+    --green: #4DB864;
     --red: #D4644A;
     --yellow: #D4A84A;
     --shadow-sm: none;
