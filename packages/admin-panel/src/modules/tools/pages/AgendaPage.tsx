@@ -647,6 +647,13 @@ export default function AgendaPage() {
   const [showNewTask, setShowNewTask] = useState(false)
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const [customizeOpen, setCustomizeOpen] = useState(false)
+  const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
+
+  // unique assignees derived from all items
+  const allAssignees = useMemo(() => {
+    const names = [...new Set(items.map(i => i.assignedTo))].sort()
+    return names
+  }, [items])
 
   function handleToggle(id: string) {
     setItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i))
@@ -680,12 +687,13 @@ export default function AgendaPage() {
 
   const filteredItems = useMemo(() => {
     return items.filter(item => {
+      if (assigneeFilter !== 'all' && item.assignedTo !== assigneeFilter) return false
       if (filterTab === 'done') return item.done
       if (filterTab === 'today') return item.dueDate ? isToday(item.dueDate) : false
       if (filterTab === 'week') return item.dueDate ? isThisWeek(item.dueDate) : false
       return true
     })
-  }, [items, filterTab])
+  }, [items, filterTab, assigneeFilter])
 
   const upcomingEvents = useMemo(() => {
     return [...items]
@@ -741,7 +749,18 @@ export default function AgendaPage() {
               borderBottom: '1px solid var(--border)',
               background: 'var(--surface-2)',
             }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--fg)' }}>Tarefas</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--fg)' }}>Tarefas</span>
+                {assigneeFilter !== 'all' && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'var(--accent-dim)', border: '1px solid var(--accent)', borderRadius: 20, padding: '2px 8px' }}>
+                    <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, color: 'var(--fg-muted)', fontFamily: 'Geist Mono, monospace' }}>
+                      {getInitials(assigneeFilter)}
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--accent)' }}>{assigneeFilter}</span>
+                    <button onClick={() => setAssigneeFilter('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', padding: 0, fontSize: 13, lineHeight: 1 }}>×</button>
+                  </span>
+                )}
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -778,13 +797,17 @@ export default function AgendaPage() {
               </div>
             )}
 
-            {/* Filter tabs */}
+            {/* Filter bar: status tabs + assignee */}
             <div style={{
               display: 'flex',
-              gap: 2,
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
               padding: '8px 12px',
               borderBottom: '1px solid var(--border)',
             }}>
+              {/* Status tabs */}
+              <div style={{ display: 'flex', gap: 2 }}>
               {FILTER_TABS.map(tab => {
                 const active = filterTab === tab.key
                 return (
@@ -807,6 +830,45 @@ export default function AgendaPage() {
                   </button>
                 )
               })}
+              </div>
+
+              {/* Assignee filter */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 9, color: 'var(--fg-dim)', letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                  Responsável
+                </span>
+                <select
+                  value={assigneeFilter}
+                  onChange={e => setAssigneeFilter(e.target.value)}
+                  style={{
+                    background: assigneeFilter !== 'all' ? 'var(--accent-dim)' : 'var(--surface-1)',
+                    border: '1px solid',
+                    borderColor: assigneeFilter !== 'all' ? 'var(--accent)' : 'var(--border)',
+                    borderRadius: 6,
+                    color: assigneeFilter !== 'all' ? 'var(--accent)' : 'var(--fg-muted)',
+                    fontSize: 12,
+                    fontWeight: assigneeFilter !== 'all' ? 600 : 400,
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    maxWidth: 140,
+                  }}
+                >
+                  <option value="all">Todos</option>
+                  {allAssignees.map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+                {assigneeFilter !== 'all' && (
+                  <button
+                    onClick={() => setAssigneeFilter('all')}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--fg-dim)', padding: 0, display: 'flex', alignItems: 'center', fontSize: 14, lineHeight: 1 }}
+                    title="Limpar filtro"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Task rows */}
