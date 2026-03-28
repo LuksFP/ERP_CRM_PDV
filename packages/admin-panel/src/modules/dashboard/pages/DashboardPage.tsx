@@ -13,32 +13,26 @@ import {
   ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts'
 
-// ─── TOOLTIP ────────────────────────────────────────────────────────────────
 function MRRTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null
   return (
     <div style={{ background: 'var(--surface-3)', border: '1px solid var(--border-hover)', borderRadius: 6, padding: '8px 14px' }}>
       <p style={{ color: 'var(--fg-dim)', fontFamily: 'Geist Mono', fontSize: 10, marginBottom: 4, letterSpacing: '0.1em' }}>{label}</p>
-      <p style={{ color: 'var(--accent)', fontFamily: 'Geist Mono', fontSize: 14, fontWeight: 700 }}>{formatCurrency(payload[0]?.value ?? 0)}</p>
+      <p style={{ color: 'var(--accent)', fontFamily: 'Geist Mono', fontSize: 13, fontWeight: 700 }}>{formatCurrency(payload[0]?.value ?? 0)}</p>
     </div>
   )
 }
 
-function PlanTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) {
+function PlanTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
   if (!active || !payload?.length) return null
   return (
     <div style={{ background: 'var(--surface-3)', border: '1px solid var(--border-hover)', borderRadius: 6, padding: '8px 14px' }}>
-      <p style={{ color: 'var(--fg-dim)', fontFamily: 'Geist Mono', fontSize: 10, marginBottom: 6, letterSpacing: '0.1em' }}>{label}</p>
-      {payload.map(p => (
-        <p key={p.name} style={{ fontFamily: 'Geist Mono', fontSize: 12, fontWeight: 600, color: 'var(--fg)' }}>
-          {formatCurrency(p.value)}
-        </p>
-      ))}
+      <p style={{ color: 'var(--fg-dim)', fontFamily: 'Geist Mono', fontSize: 10, marginBottom: 4 }}>{label}</p>
+      <p style={{ color: 'var(--fg)', fontFamily: 'Geist Mono', fontSize: 12, fontWeight: 700 }}>{formatCurrency(payload[0]?.value ?? 0)}</p>
     </div>
   )
 }
 
-// ─── DOT COLOR ───────────────────────────────────────────────────────────────
 function dotColor(type: string) {
   if (type === 'pdv_offline' || type === 'subscription_cancelled') return 'var(--red)'
   if (type === 'tenant_created' || type === 'user_added') return 'var(--green)'
@@ -55,136 +49,8 @@ const SEGMENT_COLORS: Record<string, string> = {
   electronics: '#4DBCE8',
 }
 
-const PLAN_COLORS = ['#5E584F', '#E8A830', '#4DB864']
+const PLAN_COLORS = ['#4A4540', '#E8A830', '#4DB864']
 
-// ─── METRIC CARD ─────────────────────────────────────────────────────────────
-interface MetricCardProps {
-  icon: React.ReactNode
-  label: string
-  value: string
-  sub: string
-  highlighted?: boolean
-  trend?: { value: string; up: boolean }
-  alert?: string
-  rows?: Array<{ label: string; value: string; color?: string }>
-}
-
-function MetricCard({ icon, label, value, sub, highlighted, trend, alert, rows }: MetricCardProps) {
-  if (highlighted) {
-    return (
-      <div style={{
-        background: 'var(--accent)',
-        borderRadius: 10,
-        padding: '22px 24px',
-        flex: 1,
-        position: 'relative',
-        overflow: 'hidden',
-        minWidth: 0,
-      }}>
-        {/* noise overlay */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--noise)', backgroundSize: '256px', opacity: 0.15, pointerEvents: 'none' }} />
-        {/* glow */}
-        <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', pointerEvents: 'none' }} />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 6, background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.85)' }}>
-              {icon}
-            </div>
-            <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>
-              {label}
-            </span>
-            {trend && (
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(0,0,0,0.2)', borderRadius: 20, padding: '3px 8px' }}>
-                {trend.up ? <TrendingUp size={10} color="rgba(255,255,255,0.9)" /> : <TrendingDown size={10} color="rgba(255,255,255,0.9)" />}
-                <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>{trend.value}</span>
-              </div>
-            )}
-          </div>
-
-          <p style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums', marginBottom: 6 }}>
-            {value}
-          </p>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: rows?.length ? 16 : 0 }}>{sub}</p>
-
-          {rows && rows.length > 0 && (
-            <div style={{ display: 'flex', gap: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.15)' }}>
-              {rows.map(r => (
-                <div key={r.label}>
-                  <p style={{ fontFamily: 'Geist Mono', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', marginBottom: 4 }}>{r.label}</p>
-                  <p style={{ fontFamily: 'Geist Mono', fontSize: 15, fontWeight: 700, color: r.color ?? 'rgba(255,255,255,0.9)' }}>{r.value}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{
-      background: 'var(--surface-2)',
-      border: '1px solid var(--border)',
-      borderRadius: 10,
-      padding: '22px 24px',
-      flex: 1,
-      minWidth: 0,
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--noise)', backgroundSize: '256px', opacity: 0.08, pointerEvents: 'none' }} />
-
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-dim)' }}>
-            {icon}
-          </div>
-          <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>
-            {label}
-          </span>
-        </div>
-
-        <p style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--fg)', fontVariantNumeric: 'tabular-nums', marginBottom: 6 }}>
-          {value}
-        </p>
-        <p style={{ fontSize: 12, color: 'var(--fg-dim)', marginBottom: rows?.length ? 16 : 0 }}>{sub}</p>
-
-        {alert && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, color: 'var(--red)', fontSize: 11 }}>
-            <AlertTriangle size={11} />
-            <span>{alert}</span>
-          </div>
-        )}
-
-        {rows && rows.length > 0 && (
-          <div style={{ display: 'flex', gap: 16, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
-            {rows.map(r => (
-              <div key={r.label}>
-                <p style={{ fontFamily: 'Geist Mono', fontSize: 9, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--fg-dim)', marginBottom: 4 }}>{r.label}</p>
-                <p style={{ fontFamily: 'Geist Mono', fontSize: 15, fontWeight: 700, color: r.color ?? 'var(--fg)' }}>{r.value}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─── SECTION HEADER ─────────────────────────────────────────────────────────
-function SectionHeader({ title, right }: { title: string; right?: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-      <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>
-        {title}
-      </p>
-      {right}
-    </div>
-  )
-}
-
-// ─── PAGE ───────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const { data: metrics, isLoading } = useQuery({
     queryKey: ['dashboard-metrics'],
@@ -210,106 +76,178 @@ export default function DashboardPage() {
   const maxSegMRR = Math.max(...MOCK_SEGMENT_DISTRIBUTION.map(s => s.mrr))
 
   return (
-    <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', gap: 24, minHeight: '100%' }}>
+    <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* ══ TOP BAR ══════════════════════════════════════════════════════════ */}
+      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--fg)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--fg)', letterSpacing: '-0.02em', lineHeight: 1 }}>
             Visão Geral
           </h1>
-          <p style={{ fontSize: 12, color: 'var(--fg-dim)', marginTop: 4, fontFamily: 'Geist Mono' }}>
+          <p style={{ fontSize: 11, color: 'var(--fg-dim)', marginTop: 3, fontFamily: 'Geist Mono' }}>
             {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {metrics.pdvsOffline > 0 && (
-            <Link to="/tenants" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(212,100,74,0.12)', border: '1px solid rgba(212,100,74,0.25)', borderRadius: 6, padding: '6px 12px', textDecoration: 'none', color: 'var(--red)', fontSize: 12, fontWeight: 500 }}>
-              <AlertTriangle size={12} />
+            <Link to="/tenants" style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(212,100,74,0.1)', border: '1px solid rgba(212,100,74,0.22)', borderRadius: 6, padding: '5px 10px', textDecoration: 'none', color: 'var(--red)', fontSize: 11, fontWeight: 500 }}>
+              <AlertTriangle size={11} />
               {metrics.pdvsOffline} PDVs offline
             </Link>
           )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(77,184,100,0.08)', border: '1px solid rgba(77,184,100,0.2)', borderRadius: 6, padding: '6px 12px' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', flexShrink: 0, animation: 'pulse 2s infinite' }} />
-            <span style={{ fontFamily: 'Geist Mono', fontSize: 11, color: 'var(--green)', letterSpacing: '0.08em' }}>LIVE</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(77,184,100,0.08)', border: '1px solid rgba(77,184,100,0.18)', borderRadius: 6, padding: '5px 10px' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'Geist Mono', fontSize: 10, color: 'var(--green)', letterSpacing: '0.1em', fontWeight: 600 }}>LIVE</span>
           </div>
         </div>
       </div>
 
-      {/* ══ METRIC CARDS ═════════════════════════════════════════════════════ */}
-      <div style={{ display: 'flex', gap: 16 }}>
-        <MetricCard
-          highlighted
-          icon={<Activity size={14} />}
-          label="MRR"
-          value={formatCurrency(metrics.totalMRR)}
-          sub="Receita recorrente mensal"
-          trend={{ value: `${mrrUp ? '+' : ''}${metrics.mrrGrowth}%`, up: mrrUp }}
-          rows={[
-            { label: 'Starter', value: formatCurrency(MOCK_PLAN_DISTRIBUTION[0]?.mrr ?? 0), color: 'rgba(255,255,255,0.75)' },
-            { label: 'Professional', value: formatCurrency(MOCK_PLAN_DISTRIBUTION[1]?.mrr ?? 0), color: 'rgba(255,255,255,0.9)' },
-            { label: 'Enterprise', value: formatCurrency(MOCK_PLAN_DISTRIBUTION[2]?.mrr ?? 0), color: '#fff' },
-          ]}
-        />
-        <MetricCard
-          icon={<Users size={14} />}
-          label="Tenants"
-          value={formatNumber(metrics.activeTenants)}
-          sub="clientes ativos na plataforma"
-          rows={[
-            { label: 'Trial', value: String(metrics.trialTenants), color: 'var(--yellow)' },
-            { label: 'Suspensos', value: String(metrics.suspendedTenants), color: 'var(--red)' },
-            { label: 'Usuários', value: formatNumber(metrics.totalUsers), color: 'var(--fg)' },
-          ]}
-        />
-        <MetricCard
-          icon={<Monitor size={14} />}
-          label="PDVs"
-          value={formatNumber(metrics.pdvsOnline)}
-          sub="terminais online agora"
-          alert={metrics.pdvsOffline > 0 ? `${metrics.pdvsOffline} offline` : undefined}
-          rows={[
-            { label: 'Online', value: String(metrics.pdvsOnline), color: 'var(--green)' },
-            { label: 'Offline', value: String(metrics.pdvsOffline), color: metrics.pdvsOffline > 0 ? 'var(--red)' : 'var(--fg-dim)' },
-            { label: 'Churn', value: `${metrics.churnRate}%`, color: metrics.churnRate > 3 ? 'var(--red)' : 'var(--green)' },
-          ]}
-        />
-        <MetricCard
-          icon={<RefreshCw size={14} />}
-          label="Upsell"
-          value={String(metrics.upsellOpportunities)}
-          sub="oportunidades de upgrade"
-          rows={[
-            { label: 'Limite', value: '100%', color: 'var(--red)' },
-            { label: '≥90%', value: '90%', color: 'var(--yellow)' },
-            { label: '≥80%', value: '80%', color: 'var(--accent)' },
-          ]}
-        />
+      {/* ── METRIC CARDS ───────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
+
+        {/* MRR — highlighted */}
+        <div style={{ background: 'var(--accent)', borderRadius: 10, padding: '18px 20px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--noise)', backgroundSize: '256px', opacity: 0.12, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: -30, right: -30, width: 110, height: 110, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Activity size={13} color="rgba(255,255,255,0.7)" />
+                <span style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>MRR</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'rgba(0,0,0,0.18)', borderRadius: 20, padding: '3px 7px' }}>
+                {mrrUp ? <TrendingUp size={9} color="rgba(255,255,255,0.9)" /> : <TrendingDown size={9} color="rgba(255,255,255,0.9)" />}
+                <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>
+                  {mrrUp ? '+' : ''}{metrics.mrrGrowth}%
+                </span>
+              </div>
+            </div>
+            <p style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {formatCurrency(metrics.totalMRR)}
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', marginBottom: 14 }}>Receita recorrente mensal</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+              {MOCK_PLAN_DISTRIBUTION.map(p => (
+                <div key={p.planName}>
+                  <p style={{ fontFamily: 'Geist Mono', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 3 }}>{p.planName}</p>
+                  <p style={{ fontFamily: 'Geist Mono', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.9)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {formatCurrency(p.mrr)}
+                  </p>
+                  <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 1 }}>{p.count} tenants</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tenants */}
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--noise)', backgroundSize: '256px', opacity: 0.07, pointerEvents: 'none' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <Users size={13} color="var(--fg-dim)" />
+              <span style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>Tenants</span>
+            </div>
+            <p style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--fg)', fontVariantNumeric: 'tabular-nums', marginBottom: 4 }}>
+              {formatNumber(metrics.activeTenants)}
+            </p>
+            <p style={{ fontSize: 11, color: 'var(--fg-dim)', marginBottom: 14 }}>clientes ativos na plataforma</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+              {[
+                { label: 'Trial', value: metrics.trialTenants, color: 'var(--yellow)' },
+                { label: 'Suspensos', value: metrics.suspendedTenants, color: 'var(--red)' },
+                { label: 'Usuários', value: metrics.totalUsers, color: 'var(--fg)' },
+              ].map(s => (
+                <div key={s.label}>
+                  <p style={{ fontFamily: 'Geist Mono', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-dim)', marginBottom: 3 }}>{s.label}</p>
+                  <p style={{ fontFamily: 'Geist Mono', fontSize: 14, fontWeight: 700, color: s.color }}>{formatNumber(s.value)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* PDVs */}
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--noise)', backgroundSize: '256px', opacity: 0.07, pointerEvents: 'none' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <Monitor size={13} color="var(--fg-dim)" />
+              <span style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>PDVs</span>
+            </div>
+            <p style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--fg)', fontVariantNumeric: 'tabular-nums', marginBottom: 4 }}>
+              {formatNumber(metrics.pdvsOnline)}
+            </p>
+            <p style={{ fontSize: 11, color: 'var(--fg-dim)', marginBottom: 14 }}>terminais online agora</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+              {[
+                { label: 'Online', value: metrics.pdvsOnline, color: 'var(--green)' },
+                { label: 'Offline', value: metrics.pdvsOffline, color: metrics.pdvsOffline > 0 ? 'var(--red)' : 'var(--fg-dim)' },
+                { label: 'Churn', value: `${metrics.churnRate}%`, color: metrics.churnRate > 3 ? 'var(--red)' : 'var(--green)' },
+              ].map(s => (
+                <div key={s.label}>
+                  <p style={{ fontFamily: 'Geist Mono', fontSize: 8, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg-dim)', marginBottom: 3 }}>{s.label}</p>
+                  <p style={{ fontFamily: 'Geist Mono', fontSize: 14, fontWeight: 700, color: s.color }}>{typeof s.value === 'number' ? formatNumber(s.value) : s.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Upsell */}
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'var(--noise)', backgroundSize: '256px', opacity: 0.07, pointerEvents: 'none' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+              <RefreshCw size={13} color="var(--fg-dim)" />
+              <span style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>Upsell</span>
+            </div>
+            <p style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--fg)', fontVariantNumeric: 'tabular-nums', marginBottom: 4 }}>
+              {metrics.upsellOpportunities}
+            </p>
+            <p style={{ fontSize: 11, color: 'var(--fg-dim)', marginBottom: 14 }}>oportunidades de upgrade</p>
+            <div style={{ paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+              {(upsell ?? []).slice(0, 2).map(item => (
+                <div key={`${item.tenantId}-${item.resource}`} style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <span style={{ fontSize: 10, color: 'var(--fg-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>{item.tenantName}</span>
+                    <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 700, color: item.percentage >= 100 ? 'var(--red)' : 'var(--yellow)', flexShrink: 0 }}>{item.percentage}%</span>
+                  </div>
+                  <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 3, width: `${Math.min(item.percentage, 100)}%`, background: item.percentage >= 100 ? 'var(--red)' : 'var(--yellow)' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* ══ CHARTS ═══════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
+      {/* ── CHARTS ─────────────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 14 }}>
 
         {/* MRR History */}
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '20px 24px' }}>
-          <SectionHeader
-            title="MRR — Últimos 12 meses"
-            right={<Badge variant="success">+{metrics.mrrGrowth}% este mês</Badge>}
-          />
-          <div style={{ height: 200 }}>
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>
+              MRR — Últimos 12 meses
+            </p>
+            <Badge variant="success">+{metrics.mrrGrowth}% este mês</Badge>
+          </div>
+          <div style={{ height: 180 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={MOCK_MRR_HISTORY} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="mrrGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.30} />
-                    <stop offset="65%" stopColor="var(--accent)" stopOpacity={0.06} />
+                    <stop offset="65%" stopColor="var(--accent)" stopOpacity={0.05} />
                     <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="1 8" stroke="rgba(214,198,172,0.05)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fill: 'var(--fg-dim)', fontSize: 10, fontFamily: 'Geist Mono' }} axisLine={false} tickLine={false} tickMargin={10} />
-                <YAxis tick={{ fill: 'var(--fg-dim)', fontSize: 10, fontFamily: 'Geist Mono' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} width={46} domain={['auto', 'auto']} />
-                <Tooltip content={<MRRTooltip />} cursor={{ stroke: 'rgba(232,168,48,0.2)', strokeWidth: 1 }} />
+                <XAxis dataKey="month" tick={{ fill: 'var(--fg-dim)', fontSize: 9, fontFamily: 'Geist Mono' }} axisLine={false} tickLine={false} tickMargin={10} />
+                <YAxis tick={{ fill: 'var(--fg-dim)', fontSize: 9, fontFamily: 'Geist Mono' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} width={42} domain={['auto', 'auto']} />
+                <Tooltip content={<MRRTooltip />} cursor={{ stroke: 'rgba(232,168,48,0.18)', strokeWidth: 1 }} />
                 <Area type="monotone" dataKey="mrr" stroke="var(--accent)" strokeWidth={2} fill="url(#mrrGrad)" dot={false} activeDot={{ r: 4, fill: 'var(--accent)', stroke: 'var(--surface-2)', strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
@@ -317,15 +255,19 @@ export default function DashboardPage() {
         </div>
 
         {/* Revenue by Plan */}
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '20px 24px' }}>
-          <SectionHeader title="Receita por Plano" />
-          <div style={{ height: 200 }}>
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 22px' }}>
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>
+              Receita por Plano
+            </p>
+          </div>
+          <div style={{ height: 180 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_PLAN_DISTRIBUTION} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barSize={32}>
+              <BarChart data={MOCK_PLAN_DISTRIBUTION} margin={{ top: 4, right: 4, left: 0, bottom: 0 }} barSize={40}>
                 <CartesianGrid strokeDasharray="1 8" stroke="rgba(214,198,172,0.05)" vertical={false} />
                 <XAxis dataKey="planName" tick={{ fill: 'var(--fg-dim)', fontSize: 10, fontFamily: 'Geist Mono' }} axisLine={false} tickLine={false} tickMargin={8} />
-                <YAxis tick={{ fill: 'var(--fg-dim)', fontSize: 10, fontFamily: 'Geist Mono' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} width={46} />
-                <Tooltip content={<PlanTooltip />} cursor={{ fill: 'rgba(214,198,172,0.04)' }} />
+                <YAxis tick={{ fill: 'var(--fg-dim)', fontSize: 9, fontFamily: 'Geist Mono' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `R$${(v / 1000).toFixed(0)}k`} width={42} />
+                <Tooltip content={<PlanTooltip />} cursor={{ fill: 'rgba(214,198,172,0.03)' }} />
                 <Bar dataKey="mrr" radius={[4, 4, 0, 0]}>
                   {MOCK_PLAN_DISTRIBUTION.map((_, i) => (
                     <Cell key={i} fill={PLAN_COLORS[i] ?? 'var(--accent)'} />
@@ -334,10 +276,9 @@ export default function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          {/* legend */}
-          <div style={{ display: 'flex', gap: 16, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', gap: 14, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
             {MOCK_PLAN_DISTRIBUTION.map((p, i) => (
-              <div key={p.planName} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div key={p.planName} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: PLAN_COLORS[i] ?? 'var(--accent)', flexShrink: 0 }} />
                 <span style={{ fontFamily: 'Geist Mono', fontSize: 10, color: 'var(--fg-dim)' }}>
                   {p.planName} <span style={{ color: 'var(--fg)', fontWeight: 600 }}>{p.count}</span>
@@ -348,24 +289,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ══ BOTTOM ═══════════════════════════════════════════════════════════ */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px 260px', gap: 16, flex: 1 }}>
+      {/* ── BOTTOM ─────────────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 264px 248px', gap: 14 }}>
 
         {/* Activity */}
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '20px 24px' }}>
-          <SectionHeader title="Atividade recente" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 22px' }}>
+          <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)', marginBottom: 14 }}>
+            Atividade recente
+          </p>
+          <div>
             {(activity ?? []).map((entry, i, arr) => (
-              <div key={entry.id} style={{ display: 'flex', gap: 12, paddingTop: 12, paddingBottom: 12, borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor(entry.type) }} />
+              <div key={entry.id} style={{ display: 'flex', gap: 10, paddingTop: 11, paddingBottom: 11, borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ width: 26, height: 26, borderRadius: 6, background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: dotColor(entry.type) }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.action}</span>
-                    <span style={{ fontFamily: 'Geist Mono', fontSize: 10, color: 'var(--fg-dim)', flexShrink: 0 }}>{formatRelativeTime(entry.timestamp)}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.action}</span>
+                    <span style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)', flexShrink: 0 }}>{formatRelativeTime(entry.timestamp)}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 1 }}>{entry.tenantName}</p>
+                  <p style={{ fontSize: 11, color: 'var(--fg-muted)', marginTop: 1 }}>{entry.tenantName}</p>
                   <p style={{ fontSize: 11, color: 'var(--fg-dim)', marginTop: 1 }}>{entry.description}</p>
                 </div>
               </div>
@@ -374,12 +317,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Segments */}
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '20px 24px' }}>
-          <SectionHeader
-            title="Segmentos"
-            right={<span style={{ fontFamily: 'Geist Mono', fontSize: 10, color: 'var(--fg-dim)' }}>{MOCK_SEGMENT_DISTRIBUTION.reduce((s, x) => s + x.count, 0)} total</span>}
-          />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>Segmentos</p>
+            <span style={{ fontFamily: 'Geist Mono', fontSize: 10, color: 'var(--fg-dim)' }}>
+              {MOCK_SEGMENT_DISTRIBUTION.reduce((s, x) => s + x.count, 0)} total
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
             {MOCK_SEGMENT_DISTRIBUTION
               .sort((a, b) => b.mrr - a.mrr)
               .map(seg => {
@@ -388,15 +333,18 @@ export default function DashboardPage() {
                 const label = segmentLabels[seg.segment] ?? seg.segment
                 return (
                   <div key={seg.segment}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                      <span style={{ fontSize: 12, color: 'var(--fg-muted)', fontWeight: 500 }}>{label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: 2, background: color, flexShrink: 0 }} />
+                        <span style={{ fontSize: 11, color: 'var(--fg-muted)', fontWeight: 500 }}>{label}</span>
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontFamily: 'Geist Mono', fontSize: 10, color: 'var(--fg-dim)' }}>{seg.count}</span>
-                        <span style={{ fontFamily: 'Geist Mono', fontSize: 11, fontWeight: 600, color: 'var(--fg)' }}>{formatCurrency(seg.mrr)}</span>
+                        <span style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)' }}>{seg.count}</span>
+                        <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, color: 'var(--fg)' }}>{formatCurrency(seg.mrr)}</span>
                       </div>
                     </div>
-                    <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 4, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: 4, width: `${pct}%`, background: color, transition: 'width 0.8s cubic-bezier(0.4,0,0.2,1)' }} />
+                    <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: 3, width: `${pct}%`, background: color, transition: 'width 0.8s ease' }} />
                     </div>
                   </div>
                 )
@@ -404,17 +352,15 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Upsell */}
-        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '20px 24px' }}>
-          <SectionHeader
-            title="Upsell"
-            right={
-              <span style={{ fontFamily: 'Geist Mono', fontSize: 11, fontWeight: 700, color: 'var(--yellow)', background: 'rgba(232,168,48,0.1)', padding: '2px 8px', borderRadius: 20 }}>
-                {(upsell ?? []).length}
-              </span>
-            }
-          />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Upsell list */}
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>Upsell</p>
+            <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 700, color: 'var(--yellow)', background: 'rgba(232,168,48,0.1)', padding: '2px 7px', borderRadius: 10 }}>
+              {(upsell ?? []).length}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {(upsell ?? []).map(item => (
               <Link
                 key={`${item.tenantId}-${item.resource}`}
@@ -422,21 +368,21 @@ export default function DashboardPage() {
                 params={{ tenantId: item.tenantId }}
                 style={{ display: 'block', textDecoration: 'none' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg)', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--fg)', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.tenantName}
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontFamily: 'Geist Mono', fontSize: 11, fontWeight: 700, color: item.percentage >= 100 ? 'var(--red)' : 'var(--yellow)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 700, color: item.percentage >= 100 ? 'var(--red)' : 'var(--yellow)' }}>
                       {item.percentage}%
                     </span>
-                    <ArrowUpRight size={11} style={{ color: 'var(--fg-dim)' }} />
+                    <ArrowUpRight size={10} style={{ color: 'var(--fg-dim)' }} />
                   </div>
                 </div>
-                <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden', marginBottom: 3 }}>
                   <div style={{ height: '100%', borderRadius: 3, width: `${Math.min(item.percentage, 100)}%`, background: item.percentage >= 100 ? 'var(--red)' : item.percentage >= 90 ? 'var(--yellow)' : 'var(--accent)', transition: 'width 0.7s' }} />
                 </div>
-                <p style={{ fontFamily: 'Geist Mono', fontSize: 10, color: 'var(--fg-dim)' }}>
+                <p style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)' }}>
                   {item.current}/{item.limit === 9999 ? '∞' : item.limit} {item.resource === 'users' ? 'usuários' : item.resource === 'pdvs' ? 'PDVs' : 'filiais'}
                 </p>
               </Link>
