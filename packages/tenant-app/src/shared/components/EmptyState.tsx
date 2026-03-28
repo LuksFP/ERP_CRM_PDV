@@ -1,0 +1,29 @@
+import { cn } from '@/shared/utils/cn'
+import { Button } from './Button'
+
+interface EmptyStateProps {
+  icon?: React.ReactNode
+  title: string
+  description?: string
+  action?: { label: string; onClick: () => void }
+  className?: string
+}
+
+export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
+  return (
+    <div className={cn('flex flex-col items-center justify-center gap-3 py-16 px-4 text-center', className)}>
+      {icon && (
+        <div className="w-12 h-12 rounded-xl bg-surface-2 flex items-center justify-center text-ink-subtle mb-1">
+          {icon}
+        </div>
+      )}
+      <p className="text-sm font-semibold text-ink">{title}</p>
+      {description && <p className="text-sm text-ink-muted max-w-xs">{description}</p>}
+      {action && (
+        <Button size="sm" variant="outline" onClick={action.onClick} className="mt-2">
+          {action.label}
+        </Button>
+      )}
+    </div>
+  )
+}

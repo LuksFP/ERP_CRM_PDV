@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── NOISE TEXTURE ────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+
+    /* ─── DARK (default) ── overridden at runtime by TenantProvider ── */
+    --bg: #0C0A09;
+    --canvas: #0C0A09;
+    --surface-0: #131110;
+    --surface-1: #1A1714;
+    --surface-2: #231F1A;
+    --surface-3: #2C2722;
+    --border: rgba(214, 198, 172, 0.07);
+    --border-hover: rgba(214, 198, 172, 0.14);
+    --accent: #E2A336;
+    --accent-dim: rgba(226, 163, 54, 0.10);
+    --secondary: #5CB870;
+    --fg: #E8E0D4;
+    --fg-muted: #A89F91;
+    --fg-dim: #6B6358;
+    /* aliases for components */
+    --ink: #E8E0D4;
+    --ink-muted: #A89F91;
+    --ink-subtle: #6B6358;
+    --green: #5CB870;
+    --red: #D4644A;
+    --yellow: #D4A84A;
+    --shadow-sm: none;
+    --shadow-md: none;
+  }
+
+  .light {
+    --bg: #FAF8F5;
+    --canvas: #F2EFE9;
+    --surface-0: #FEFDFB;
+    --surface-1: #FFFFFF;
+    --surface-2: #F5F2ED;
+    --surface-3: #EDE9E3;
+    --border: rgba(60, 50, 38, 0.09);
+    --border-hover: rgba(60, 50, 38, 0.15);
+    --accent-dim: rgba(196, 136, 32, 0.08);
+    --fg: #1A1714;
+    --fg-muted: #6B6358;
+    --fg-dim: #A89F91;
+    /* aliases for components */
+    --ink: #1A1714;
+    --ink-muted: #6B6358;
+    --ink-subtle: #A89F91;
+    --green: #2D8A42;
+    --red: #C0392B;
+    --yellow: #B8860B;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  * { border-color: var(--border); box-sizing: border-box; }
+
+  html {
+    font-family: 'Geist', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    background-image: var(--noise);
+    background-repeat: repeat;
+    background-size: 256px;
+    min-height: 100vh;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--fg-dim); }
+  ::selection { background: var(--accent-dim); color: var(--fg); }
+}
+
+/* ─── SHIMMER SKELETON ─────────────────────────────────────────── */
+@layer utilities {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--surface-2) 25%,
+      var(--surface-3) 50%,
+      var(--surface-2) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 4px;
+  }
+
+  /* Deliberate mixed radii — anti-IA */
+  .radius-tight { border-radius: 3px; }
+  .radius-normal { border-radius: 6px; }
+  .radius-loose { border-radius: 10px; }
+
+  /* Accent-contrast aware — set by TenantProvider */
+  .text-on-accent { color: var(--accent-contrast); }
+}
