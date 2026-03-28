@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { ClipboardList, Plus, Search, MessageSquare } from 'lucide-react'
+import { useState, useMemo, useRef, useEffect } from 'react'
+import { ClipboardList, Plus, Search, MessageSquare, SlidersHorizontal, RotateCcw, Check } from 'lucide-react'
 import { Button } from '@/shared/components/Button'
 import { Badge } from '@/shared/components/Badge'
 import { Modal } from '@/shared/components/Modal'
@@ -7,6 +7,7 @@ import { Input } from '@/shared/components/Input'
 import { useAuthStore } from '@/modules/auth/store'
 import { MOCK_SERVICE_ORDERS, MOCK_TENANTS } from '@/mock/data'
 import { MOCK_ADMIN_USERS } from '@/modules/auth/store'
+import { useToolsStore } from '@/shared/store/tools'
 import type { ServiceOrder, ServiceOrderStatus, ServiceOrderPriority } from '@/shared/types'
 
 // ─── HELPERS ──────────────────────────────────────────────────────
@@ -90,6 +91,77 @@ function PriorityBadge({ priority }: { priority: ServiceOrderPriority }) {
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: PRIORITY_COLORS[priority], flexShrink: 0 }} />
       {PRIORITY_LABELS[priority]}
     </span>
+  )
+}
+
+// ─── TOGGLE ────────────────────────────────────────────────────────
+function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      onClick={onChange}
+      style={{ width: 32, height: 18, borderRadius: 9, background: checked ? 'var(--accent)' : 'var(--surface-3)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.15s', flexShrink: 0, padding: 0 }}
+    >
+      <span style={{ position: 'absolute', top: 2, left: checked ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {checked && <Check size={8} color="var(--accent)" strokeWidth={3} />}
+      </span>
+    </button>
+  )
+}
+
+// ─── OS CUSTOMIZE PANEL ────────────────────────────────────────────
+function OSCustomizePanel({ onClose }: { onClose: () => void }) {
+  const { serviceOrders, toggleColumn, setServiceOrders, resetServiceOrders } = useToolsStore()
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [onClose])
+
+  const colLabels: Record<keyof typeof serviceOrders.columns, string> = {
+    tenant: 'Tenant',
+    title: 'Título',
+    priority: 'Prioridade',
+    status: 'Status',
+    assignedTo: 'Responsável',
+    timeOpen: 'Aberta há',
+  }
+
+  const row = (label: string, checked: boolean, onChange: () => void) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
+      <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{label}</span>
+      <Toggle checked={checked} onChange={onChange} />
+    </div>
+  )
+
+  return (
+    <div ref={ref} style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, width: 240, background: 'var(--surface-2)', border: '1px solid var(--border-hover)', borderRadius: 10, padding: '14px 16px', zIndex: 50, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', margin: 0 }}>Personalizar</p>
+        <button onClick={resetServiceOrders} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--fg-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <RotateCcw size={11} /> Restaurar
+        </button>
+      </div>
+      <p style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)', margin: '14px 0 6px' }}>Colunas</p>
+      {(Object.keys(colLabels) as Array<keyof typeof serviceOrders.columns>).map(col => (
+        row(colLabels[col], serviceOrders.columns[col], () => toggleColumn(col))
+      ))}
+      <p style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)', margin: '14px 0 6px' }}>Filtro padrão</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {(['all','open','in_progress','resolved'] as const).map(tab => {
+          const labels = { all: 'Todas', open: 'Abertas', in_progress: 'Em andamento', resolved: 'Resolvidas' }
+          const active = serviceOrders.defaultStatusTab === tab
+          return (
+            <button key={tab} onClick={() => setServiceOrders({ defaultStatusTab: tab })} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: active ? 600 : 400, border: '1px solid', borderColor: active ? 'var(--accent)' : 'var(--border)', background: active ? 'var(--accent-dim)' : 'transparent', color: active ? 'var(--accent)' : 'var(--fg-dim)', cursor: 'pointer', transition: 'all 0.1s' }}>
+              {labels[tab]}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -439,15 +511,20 @@ function CreateModal({ onClose, onCreate }: CreateModalProps) {
 
 export default function ServiceOrdersPage() {
   const user = useAuthStore(s => s.user)
+  const { serviceOrders: soConfig } = useToolsStore()
+  const isSuperAdmin = user?.role === 'superadmin'
+
   const [orders, setOrders] = useState<ServiceOrder[]>(MOCK_SERVICE_ORDERS)
   const [search, setSearch] = useState('')
-  const [statusTab, setStatusTab] = useState<StatusTabFilter>('all')
-  const [priorityFilter, setPriorityFilter] = useState<ServiceOrderPriority | 'all'>('all')
+  const [statusTab, setStatusTab] = useState<StatusTabFilter>(soConfig.defaultStatusTab)
+  const [priorityFilter, setPriorityFilter] = useState<ServiceOrderPriority | 'all'>(soConfig.defaultPriorityFilter)
   const [assigneeFilter, setAssigneeFilter] = useState<string>('all')
   const [selectedOS, setSelectedOS] = useState<ServiceOrder | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [customizeOpen, setCustomizeOpen] = useState(false)
 
   const canCreate = user?.role !== 'sales'
+  const cols = soConfig.columns
 
   const filtered = useMemo(() => {
     return orders.filter(os => {
@@ -503,15 +580,29 @@ export default function ServiceOrdersPage() {
             borderRadius: 20, padding: '2px 10px', color: 'var(--fg-muted)',
           }}>{orders.length}</span>
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus style={{ width: 14, height: 14 }} />}
-          disabled={!canCreate}
-          onClick={() => setShowCreate(true)}
-        >
-          Nova OS
-        </Button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {isSuperAdmin && (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setCustomizeOpen(o => !o)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, height: 30, padding: '0 12px', borderRadius: 6, border: '1px solid', borderColor: customizeOpen ? 'var(--accent)' : 'var(--border)', background: customizeOpen ? 'var(--accent-dim)' : 'var(--surface-2)', color: customizeOpen ? 'var(--accent)' : 'var(--fg-muted)', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 0.1s' }}
+              >
+                <SlidersHorizontal size={12} />
+                Personalizar
+              </button>
+              {customizeOpen && <OSCustomizePanel onClose={() => setCustomizeOpen(false)} />}
+            </div>
+          )}
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Plus style={{ width: 14, height: 14 }} />}
+            disabled={!canCreate}
+            onClick={() => setShowCreate(true)}
+          >
+            Nova OS
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -614,19 +705,13 @@ export default function ServiceOrdersPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
-              {['#', 'Tenant', 'Título', 'Prioridade', 'Status', 'Responsável', 'Aberta há'].map((h, i) => (
-                <th key={i} style={{
-                  padding: '10px 14px',
-                  textAlign: 'left',
-                  fontFamily: 'Geist Mono, monospace',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: 'var(--fg-dim)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
-                  whiteSpace: 'nowrap',
-                }}>{h}</th>
-              ))}
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Geist Mono, monospace', fontSize: 10, fontWeight: 600, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>#</th>
+              {cols.tenant    && <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Geist Mono, monospace', fontSize: 10, fontWeight: 600, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>Tenant</th>}
+              {cols.title     && <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Geist Mono, monospace', fontSize: 10, fontWeight: 600, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>Título</th>}
+              {cols.priority  && <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Geist Mono, monospace', fontSize: 10, fontWeight: 600, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>Prioridade</th>}
+              {cols.status    && <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Geist Mono, monospace', fontSize: 10, fontWeight: 600, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>Status</th>}
+              {cols.assignedTo && <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Geist Mono, monospace', fontSize: 10, fontWeight: 600, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>Responsável</th>}
+              {cols.timeOpen  && <th style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Geist Mono, monospace', fontSize: 10, fontWeight: 600, color: 'var(--fg-dim)', textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap' }}>Aberta há</th>}
             </tr>
           </thead>
           <tbody>
@@ -641,44 +726,19 @@ export default function ServiceOrdersPage() {
               <tr
                 key={os.id}
                 onClick={() => setSelectedOS(os)}
-                style={{
-                  background: idx % 2 === 0 ? 'transparent' : 'var(--surface-1)',
-                  borderBottom: '1px solid var(--border)',
-                  cursor: 'pointer',
-                  transition: 'background 0.1s',
-                }}
+                style={{ background: idx % 2 === 0 ? 'transparent' : 'var(--surface-1)', borderBottom: '1px solid var(--border)', cursor: 'pointer', transition: 'background 0.1s' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = idx % 2 === 0 ? 'transparent' : 'var(--surface-1)' }}
               >
                 <td style={{ padding: '10px 14px' }}>
-                  <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11, color: 'var(--fg-dim)', fontWeight: 600 }}>
-                    {os.number}
-                  </span>
+                  <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11, color: 'var(--fg-dim)', fontWeight: 600 }}>{os.number}</span>
                 </td>
-                <td style={{ padding: '10px 14px' }}>
-                  <span style={{ fontSize: 13, color: 'var(--fg)', fontWeight: 500 }}>{os.tenantName}</span>
-                </td>
-                <td style={{ padding: '10px 14px', maxWidth: 260 }}>
-                  <span style={{ fontSize: 13, color: 'var(--fg)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {os.title}
-                  </span>
-                </td>
-                <td style={{ padding: '10px 14px' }}>
-                  <PriorityBadge priority={os.priority} />
-                </td>
-                <td style={{ padding: '10px 14px' }}>
-                  <Badge variant={STATUS_BADGE_VARIANT[os.status]} size="sm">
-                    {STATUS_LABELS[os.status]}
-                  </Badge>
-                </td>
-                <td style={{ padding: '10px 14px' }}>
-                  <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{os.assignedTo.name}</span>
-                </td>
-                <td style={{ padding: '10px 14px' }}>
-                  <span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11, color: 'var(--fg-dim)' }}>
-                    {formatRelative(os.createdAt)}
-                  </span>
-                </td>
+                {cols.tenant    && <td style={{ padding: '10px 14px' }}><span style={{ fontSize: 13, color: 'var(--fg)', fontWeight: 500 }}>{os.tenantName}</span></td>}
+                {cols.title     && <td style={{ padding: '10px 14px', maxWidth: 260 }}><span style={{ fontSize: 13, color: 'var(--fg)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{os.title}</span></td>}
+                {cols.priority  && <td style={{ padding: '10px 14px' }}><PriorityBadge priority={os.priority} /></td>}
+                {cols.status    && <td style={{ padding: '10px 14px' }}><Badge variant={STATUS_BADGE_VARIANT[os.status]} size="sm">{STATUS_LABELS[os.status]}</Badge></td>}
+                {cols.assignedTo && <td style={{ padding: '10px 14px' }}><span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{os.assignedTo.name}</span></td>}
+                {cols.timeOpen  && <td style={{ padding: '10px 14px' }}><span style={{ fontFamily: 'Geist Mono, monospace', fontSize: 11, color: 'var(--fg-dim)' }}>{formatRelative(os.createdAt)}</span></td>}
               </tr>
             ))}
           </tbody>

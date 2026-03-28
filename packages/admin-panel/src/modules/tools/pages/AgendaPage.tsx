@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import {
   CalendarDays,
   Plus,
@@ -8,10 +8,15 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight as ChevronRightIcon,
+  SlidersHorizontal,
+  RotateCcw,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/shared/components/Button'
 import { Input } from '@/shared/components/Input'
 import { MOCK_AGENDA_ITEMS } from '@/mock/data'
+import { useAuthStore } from '@/modules/auth/store'
+import { useToolsStore } from '@/shared/store/tools'
 import type { AgendaItem, AgendaItemType, AgendaItemPriority } from '@/shared/types'
 
 // ─── HELPERS ──────────────────────────────────────────────────────
@@ -94,6 +99,68 @@ function tagColor(tag: string) {
   let hash = 0
   for (let i = 0; i < tag.length; i++) hash = tag.charCodeAt(i) + ((hash << 5) - hash)
   return TAG_COLORS[Math.abs(hash) % TAG_COLORS.length] ?? TAG_COLORS[0]!
+}
+
+// ─── TOGGLE ────────────────────────────────────────────────────────
+function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      onClick={onChange}
+      style={{ width: 32, height: 18, borderRadius: 9, background: checked ? 'var(--accent)' : 'var(--surface-3)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.15s', flexShrink: 0, padding: 0 }}
+    >
+      <span style={{ position: 'absolute', top: 2, left: checked ? 16 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.15s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {checked && <Check size={8} color="var(--accent)" strokeWidth={3} />}
+      </span>
+    </button>
+  )
+}
+
+// ─── AGENDA CUSTOMIZE PANEL ────────────────────────────────────────
+function AgendaCustomizePanel({ onClose }: { onClose: () => void }) {
+  const { agenda, setAgenda, resetAgenda } = useToolsStore()
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [onClose])
+
+  const row = (label: string, checked: boolean, onChange: () => void) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)' }}>
+      <span style={{ fontSize: 12, color: 'var(--fg-muted)' }}>{label}</span>
+      <Toggle checked={checked} onChange={onChange} />
+    </div>
+  )
+
+  return (
+    <div ref={ref} style={{ position: 'absolute', top: '100%', right: 0, marginTop: 6, width: 240, background: 'var(--surface-2)', border: '1px solid var(--border-hover)', borderRadius: 10, padding: '14px 16px', zIndex: 50, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', margin: 0 }}>Personalizar</p>
+        <button onClick={resetAgenda} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: 'var(--fg-dim)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          <RotateCcw size={11} /> Restaurar
+        </button>
+      </div>
+      <p style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)', margin: '14px 0 6px' }}>Painel direito</p>
+      {row('Calendário', agenda.showCalendar, () => setAgenda({ showCalendar: !agenda.showCalendar }))}
+      {row('Próximos eventos', agenda.showUpcoming, () => setAgenda({ showUpcoming: !agenda.showUpcoming }))}
+      {row('Criar evento rápido', agenda.showQuickCreate, () => setAgenda({ showQuickCreate: !agenda.showQuickCreate }))}
+      <p style={{ fontFamily: 'Geist Mono', fontSize: 9, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)', margin: '14px 0 6px' }}>Filtro padrão</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {(['all','today','week','done'] as const).map(f => {
+          const labels = { all: 'Todas', today: 'Hoje', week: 'Esta semana', done: 'Concluídas' }
+          const active = agenda.defaultFilter === f
+          return (
+            <button key={f} onClick={() => setAgenda({ defaultFilter: f })} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: active ? 600 : 400, border: '1px solid', borderColor: active ? 'var(--accent)' : 'var(--border)', background: active ? 'var(--accent-dim)' : 'transparent', color: active ? 'var(--accent)' : 'var(--fg-dim)', cursor: 'pointer', transition: 'all 0.1s' }}>
+              {labels[f]}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 type FilterTab = 'all' | 'today' | 'week' | 'done'
@@ -569,12 +636,17 @@ function QuickCreateForm({ onCreate }: QuickCreateProps) {
 // ─── MAIN PAGE ────────────────────────────────────────────────────
 
 export default function AgendaPage() {
+  const user = useAuthStore(s => s.user)
+  const { agenda: agendaConfig } = useToolsStore()
+  const isSuperAdmin = user?.role === 'superadmin'
+
   const [items, setItems] = useState<AgendaItem[]>(MOCK_AGENDA_ITEMS)
-  const [filterTab, setFilterTab] = useState<FilterTab>('all')
+  const [filterTab, setFilterTab] = useState<FilterTab>(agendaConfig.defaultFilter)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [showNewTask, setShowNewTask] = useState(false)
   const [newTaskTitle, setNewTaskTitle] = useState('')
+  const [customizeOpen, setCustomizeOpen] = useState(false)
 
   function handleToggle(id: string) {
     setItems(prev => prev.map(i => i.id === id ? { ...i, done: !i.done } : i))
@@ -625,20 +697,28 @@ export default function AgendaPage() {
   return (
     <div style={{ padding: '24px 28px', minHeight: '100%' }}>
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 8,
-          background: 'var(--accent-dim)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <CalendarDays style={{ width: 18, height: 18, color: 'var(--accent)' }} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CalendarDays style={{ width: 18, height: 18, color: 'var(--accent)' }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--fg)', margin: 0 }}>Agenda</h1>
+            <p style={{ fontSize: 12, color: 'var(--fg-muted)', margin: 0, marginTop: 1 }}>Tarefas, eventos e lembretes da equipe</p>
+          </div>
         </div>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--fg)', margin: 0 }}>Agenda</h1>
-          <p style={{ fontSize: 12, color: 'var(--fg-muted)', margin: 0, marginTop: 1 }}>
-            Tarefas, eventos e lembretes da equipe
-          </p>
-        </div>
+        {isSuperAdmin && (
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setCustomizeOpen(o => !o)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, height: 30, padding: '0 12px', borderRadius: 6, border: '1px solid', borderColor: customizeOpen ? 'var(--accent)' : 'var(--border)', background: customizeOpen ? 'var(--accent-dim)' : 'var(--surface-2)', color: customizeOpen ? 'var(--accent)' : 'var(--fg-muted)', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 0.1s' }}
+            >
+              <SlidersHorizontal size={12} />
+              Personalizar
+            </button>
+            {customizeOpen && <AgendaCustomizePanel onClose={() => setCustomizeOpen(false)} />}
+          </div>
+        )}
       </div>
 
       {/* Split layout */}
@@ -752,6 +832,7 @@ export default function AgendaPage() {
         <div style={{ flex: '0 0 40%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Mini Calendar */}
+          {agendaConfig.showCalendar && (
           <div style={{
             background: 'var(--surface-1)',
             border: '1px solid var(--border)',
@@ -764,9 +845,10 @@ export default function AgendaPage() {
               onSelectDate={setSelectedDate}
             />
           </div>
+          )}
 
           {/* Upcoming events */}
-          <div style={{
+          {agendaConfig.showUpcoming && <div style={{
             background: 'var(--surface-1)',
             border: '1px solid var(--border)',
             borderRadius: 10,
@@ -846,10 +928,10 @@ export default function AgendaPage() {
                 )
               })
             )}
-          </div>
+          </div>}
 
           {/* Quick create */}
-          <QuickCreateForm onCreate={handleCreate} />
+          {agendaConfig.showQuickCreate && <QuickCreateForm onCreate={handleCreate} />}
         </div>
       </div>
     </div>
