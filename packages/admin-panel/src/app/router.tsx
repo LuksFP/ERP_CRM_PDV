@@ -6,7 +6,7 @@ import {
   Outlet,
 } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
-import { useAuthStore } from '@/modules/auth/store'
+import { useAuthStore, ROLE_PERMISSIONS } from '@/modules/auth/store'
 import { AppLayout } from '@/layout/AppLayout'
 import { Spinner } from '@/shared/components/Spinner'
 
@@ -18,6 +18,9 @@ const TenantDetailPage = lazy(() => import('@/modules/tenants/pages/TenantDetail
 const PlansPage = lazy(() => import('@/modules/plans/pages/PlansPage'))
 const SegmentsPage = lazy(() => import('@/modules/segments/pages/SegmentsPage'))
 const AnalyticsPage = lazy(() => import('@/modules/analytics/pages/AnalyticsPage'))
+const ServiceOrdersPage = lazy(() => import('@/modules/tools/pages/ServiceOrdersPage'))
+const AgendaPage = lazy(() => import('@/modules/tools/pages/AgendaPage'))
+const TeamPage = lazy(() => import('@/modules/team/pages/TeamPage'))
 
 function PageLoader() {
   return (
@@ -48,6 +51,30 @@ const authGuard = () => {
 const guestGuard = () => {
   const { isAuthenticated } = useAuthStore.getState()
   if (isAuthenticated) {
+    throw redirect({ to: '/dashboard' })
+  }
+}
+
+const superadminGuard = () => {
+  const { user, isAuthenticated } = useAuthStore.getState()
+  if (!isAuthenticated) {
+    throw redirect({ to: '/login' })
+  }
+  if (!user || user.role !== 'superadmin') {
+    throw redirect({ to: '/dashboard' })
+  }
+}
+
+const toolsGuard = () => {
+  const { user, isAuthenticated } = useAuthStore.getState()
+  if (!isAuthenticated) {
+    throw redirect({ to: '/login' })
+  }
+  if (!user) {
+    throw redirect({ to: '/dashboard' })
+  }
+  const perms = ROLE_PERMISSIONS[user.role]
+  if (!perms.canUseTools) {
     throw redirect({ to: '/dashboard' })
   }
 }
@@ -121,6 +148,27 @@ const analyticsRoute = createRoute({
   component: withSuspense(AnalyticsPage),
 })
 
+const serviceOrdersRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: '/tools/service-orders',
+  beforeLoad: toolsGuard,
+  component: withSuspense(ServiceOrdersPage),
+})
+
+const agendaRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: '/tools/agenda',
+  beforeLoad: toolsGuard,
+  component: withSuspense(AgendaPage),
+})
+
+const teamRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: '/team',
+  beforeLoad: superadminGuard,
+  component: withSuspense(TeamPage),
+})
+
 // ─── ROUTER ──────────────────────────────────────────────────────
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -132,6 +180,9 @@ const routeTree = rootRoute.addChildren([
     plansRoute,
     segmentsRoute,
     analyticsRoute,
+    serviceOrdersRoute,
+    agendaRoute,
+    teamRoute,
   ]),
 ])
 
