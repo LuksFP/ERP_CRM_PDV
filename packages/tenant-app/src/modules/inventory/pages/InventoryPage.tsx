@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, Search, Package, AlertTriangle } from 'lucide-react'
 import { usePermissions } from '@/shared/hooks/usePermissions'
 import { useCustomFields } from '@/shared/hooks/useCustomFields'
+import { useMockQuery } from '@/shared/hooks/useMockQuery'
 import { MOCK_PRODUCTS, MOCK_CATEGORIES } from '@/mock/configs'
 import { formatCurrency } from '@/shared/utils/formatters'
 import { Button } from '@/shared/components/Button'
@@ -9,6 +10,7 @@ import { Input } from '@/shared/components/Input'
 import { Badge } from '@/shared/components/Badge'
 import { Modal } from '@/shared/components/Modal'
 import { EmptyState } from '@/shared/components/EmptyState'
+import { SkeletonTable } from '@/shared/components/Skeleton'
 import { DynamicFieldRenderer } from '@/shared/components/DynamicFieldRenderer'
 import { cn } from '@/shared/utils/cn'
 import type { Product } from '@/shared/types'
@@ -16,6 +18,7 @@ import type { Product } from '@/shared/types'
 type SortKey = 'name' | 'stock' | 'price'
 
 export default function InventoryPage() {
+  const { isLoading } = useMockQuery(true, 700)
   const { hasRole } = usePermissions()
   const customFields = useCustomFields('product')
 
@@ -40,6 +43,16 @@ export default function InventoryPage() {
     })
 
   const lowStock = MOCK_PRODUCTS.filter((p) => p.stock <= p.minStock)
+
+  if (isLoading) return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2"><div className="skeleton h-6 w-32 rounded" /><div className="skeleton h-4 w-48 rounded" /></div>
+        <div className="skeleton h-9 w-32 rounded-lg" />
+      </div>
+      <SkeletonTable rows={8} />
+    </div>
+  )
 
   return (
     <div className="space-y-5 animate-fade-up">

@@ -12,8 +12,8 @@ const ROLE_HIERARCHY: Record<TenantRole, number> = {
 
 // Which modules each role can access
 const ROLE_MODULE_ACCESS: Record<TenantRole, ModuleKey[]> = {
-  owner: ['dashboard', 'inventory', 'pdv', 'crm', 'financial', 'fiscal', 'purchasing', 'settings'],
-  manager: ['dashboard', 'inventory', 'pdv', 'crm', 'financial', 'fiscal', 'purchasing'],
+  owner: ['dashboard', 'inventory', 'pdv', 'crm', 'financial', 'fiscal', 'purchasing', 'team', 'branches', 'settings'],
+  manager: ['dashboard', 'inventory', 'pdv', 'crm', 'financial', 'fiscal', 'purchasing', 'team', 'branches'],
   financial: ['dashboard', 'financial', 'fiscal'],
   seller: ['dashboard', 'pdv', 'crm'],
   stock_clerk: ['dashboard', 'inventory', 'purchasing'],
@@ -48,7 +48,7 @@ export function usePermissions() {
   function getVisibleModules(): { module: ModuleKey; locked: boolean; accessible: boolean }[] {
     const allModules: ModuleKey[] = [
       'dashboard', 'inventory', 'pdv', 'crm',
-      'financial', 'fiscal', 'purchasing', 'settings',
+      'financial', 'fiscal', 'purchasing', 'team', 'branches', 'settings',
     ]
 
     const roleModules = ROLE_MODULE_ACCESS[role] ?? []

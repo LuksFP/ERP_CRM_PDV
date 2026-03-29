@@ -54,6 +54,8 @@ export const moduleLabels: Record<ModuleKey, string> = {
   financial: 'Financeiro',
   fiscal: 'Fiscal / NF-e',
   purchasing: 'Compras',
+  team: 'Equipe',
+  branches: 'Filiais e PDVs',
   settings: 'Configurações',
 }
 

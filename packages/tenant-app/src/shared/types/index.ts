@@ -22,6 +22,8 @@ export type ModuleKey =
   | 'financial'
   | 'fiscal'
   | 'purchasing'
+  | 'team'
+  | 'branches'
   | 'settings'
 
 export type SegmentType =

@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Plus, Users2, DollarSign, ArrowRight } from 'lucide-react'
 import { MOCK_DEALS, MOCK_CONTACTS } from '@/mock/configs'
 import { formatCurrency, formatDate, dealStageLabels } from '@/shared/utils/formatters'
+import { useMockQuery } from '@/shared/hooks/useMockQuery'
 import { Badge } from '@/shared/components/Badge'
 import { Button } from '@/shared/components/Button'
 import { Tabs } from '@/shared/components/Tabs'
+import { Skeleton } from '@/shared/components/Skeleton'
 import { cn } from '@/shared/utils/cn'
 import type { DealStage } from '@/shared/types'
 
@@ -68,11 +70,27 @@ function KanbanColumn({ stage }: { stage: DealStage }) {
 }
 
 export default function CRMPage() {
+  const { isLoading } = useMockQuery(true, 650)
   const [tab, setTab] = useState('pipeline')
 
   const totalPipeline = MOCK_DEALS.filter((d) => d.stage !== 'won' && d.stage !== 'lost')
     .reduce((s, d) => s + d.value, 0)
   const wonDeals = MOCK_DEALS.filter((d) => d.stage === 'won')
+
+  if (isLoading) return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2"><Skeleton className="h-6 w-20" /><Skeleton className="h-4 w-48" /></div>
+        <Skeleton className="h-9 w-32 rounded-lg" />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 w-52 shrink-0 rounded-lg" />)}
+      </div>
+    </div>
+  )
 
   return (
     <div className="space-y-5 animate-fade-up">

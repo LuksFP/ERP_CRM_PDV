@@ -1,25 +1,55 @@
-import { Sun, Moon, Bell, LogOut, ChevronDown } from 'lucide-react'
+import {
+  Sun, Moon, Bell, LogOut, ChevronDown,
+  LayoutDashboard, Building2, CreditCard, Tag, BarChart3, ClipboardList, CalendarDays,
+} from 'lucide-react'
 import { useState } from 'react'
+import { useRouterState } from '@tanstack/react-router'
 import { useUIStore } from '@/shared/store/ui'
 import { useAuthStore } from '@/modules/auth/store'
 import { Button } from '@/shared/components/Button'
 import { cn } from '@/shared/utils/cn'
 
+const PAGE_META: Record<string, { label: string; icon: React.ElementType }> = {
+  '/dashboard':            { label: 'Dashboard',       icon: LayoutDashboard },
+  '/tenants':              { label: 'Tenants',          icon: Building2 },
+  '/plans':                { label: 'Planos',           icon: CreditCard },
+  '/segments':             { label: 'Segmentos',        icon: Tag },
+  '/analytics':            { label: 'Analytics',        icon: BarChart3 },
+  '/tools/service-orders': { label: 'Ordem de Serviço', icon: ClipboardList },
+  '/tools/agenda':         { label: 'Agenda',           icon: CalendarDays },
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  superadmin: 'Super Admin',
+  support:    'Suporte',
+  sales:      'Vendas',
+  technician: 'Técnico',
+}
+
 export function Header() {
   const { theme, toggleTheme } = useUIStore()
   const { user, logout } = useAuthStore()
   const [menuOpen, setMenuOpen] = useState(false)
+  const routerState = useRouterState()
 
-  const roleLabel: Record<string, string> = {
-    superadmin: 'Super Admin',
-    support: 'Suporte',
-    sales: 'Vendas',
-  }
+  const pathname = routerState.location.pathname
+  const matchedKey = Object.keys(PAGE_META)
+    .sort((a, b) => b.length - a.length)
+    .find(k => pathname === k || pathname.startsWith(k + '/'))
+  const pageMeta = matchedKey ? PAGE_META[matchedKey] : undefined
+  const PageIcon = pageMeta?.icon
 
   return (
     <header className="flex items-center justify-between px-6 border-b shrink-0" style={{ height: 53, background: 'var(--bg)', borderColor: 'var(--border)' }}>
-      {/* Left: breadcrumb handled by pages */}
-      <div />
+      {/* Left: page context */}
+      <div className="flex items-center gap-2">
+        {PageIcon && <PageIcon className="h-[15px] w-[15px]" style={{ color: 'var(--fg-dim)' }} />}
+        {pageMeta && (
+          <span className="text-sm font-medium" style={{ color: 'var(--fg)' }}>
+            {pageMeta.label}
+          </span>
+        )}
+      </div>
 
       {/* Right: actions */}
       <div className="flex items-center gap-2">
@@ -47,6 +77,8 @@ export function Header() {
         <div className="relative">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-haspopup="true"
+            aria-expanded={menuOpen}
             className={cn(
               'flex items-center gap-2 h-9 pl-2 pr-3 rounded-btn',
               'text-sm text-fg-muted hover:text-fg hover:bg-surface-2',
@@ -62,10 +94,10 @@ export function Header() {
             <div className="hidden sm:flex flex-col items-start leading-tight">
               <span className="text-xs font-medium text-fg">{user?.name}</span>
               <span className="text-2xs text-fg-dim">
-                {user?.role ? roleLabel[user.role] : ''}
+                {user?.role ? ROLE_LABEL[user.role] : ''}
               </span>
             </div>
-            <ChevronDown className="h-3.5 w-3.5 text-fg-dim" />
+            <ChevronDown className={cn('h-3.5 w-3.5 text-fg-dim transition-transform duration-150', menuOpen && 'rotate-180')} />
           </button>
 
           {menuOpen && (
