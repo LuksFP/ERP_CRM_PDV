@@ -1,0 +1,387 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ────────────────────────────────────────────────────────────────────
+
+enum TenantStatus {
+  active
+  suspended
+  trial
+  cancelled
+}
+
+enum PlanName {
+  Starter
+  Professional
+  Enterprise
+}
+
+enum TenantRole {
+  owner
+  manager
+  cashier
+  stock_clerk
+  seller
+  financial
+}
+
+enum AdminRole {
+  superadmin
+  support
+  sales
+  technician
+}
+
+enum SegmentType {
+  pharmacy
+  supermarket
+  bakery
+  butcher
+  restaurant
+  clothing
+  electronics
+  other
+}
+
+enum SaleStatus {
+  open
+  completed
+  cancelled
+}
+
+enum PaymentMethod {
+  cash
+  card_debit
+  card_credit
+  pix
+  voucher
+}
+
+enum DealStage {
+  lead
+  contact
+  proposal
+  negotiation
+  won
+  lost
+}
+
+enum TransactionType {
+  receivable
+  payable
+}
+
+enum TransactionStatus {
+  pending
+  paid
+  overdue
+  cancelled
+}
+
+enum StockMovementType {
+  in
+  out
+  adjustment
+}
+
+// ─── TENANT ───────────────────────────────────────────────────────────────────
+
+model Tenant {
+  id                  String        @id @default(uuid())
+  name                String
+  slug                String        @unique
+  segment             SegmentType
+  planName            PlanName      @default(Starter)
+  status              TenantStatus  @default(trial)
+  logoUrl             String?
+  primaryColor        String        @default("#2563EB")
+  accentColor         String        @default("#16A34A")
+  darkMode            Boolean       @default(false)
+  onboardingCompleted Boolean       @default(false)
+  mrr                 Float         @default(0)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  users         TenantUser[]
+  branches      Branch[]
+  products      Product[]
+  sales         Sale[]
+  contacts      Contact[]
+  deals         Deal[]
+  transactions  Transaction[]
+  customFields  CustomFieldDef[]
+
+  @@map("tenants")
+}
+
+// ─── USERS ────────────────────────────────────────────────────────────────────
+
+model TenantUser {
+  id          String      @id @default(uuid())
+  tenantId    String
+  branchId    String?
+  name        String
+  email       String
+  phone       String?
+  passwordHash String
+  role        TenantRole
+  status      String      @default("active")
+  lastLoginAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch  Branch?  @relation(fields: [branchId], references: [id])
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("tenant_users")
+}
+
+model AdminUser {
+  id           String    @id @default(uuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         AdminRole
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("admin_users")
+}
+
+// ─── BRANCHES & PDVs ──────────────────────────────────────────────────────────
+
+model Branch {
+  id        String  @id @default(uuid())
+  tenantId  String
+  name      String
+  isMain    Boolean @default(false)
+  address   String
+  phone     String
+  managerId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  pdvs    PDVDevice[]
+  users   TenantUser[]
+  sales   Sale[]
+
+  @@index([tenantId])
+  @@map("branches")
+}
+
+model PDVDevice {
+  id              String    @id @default(uuid())
+  tenantId        String
+  branchId        String
+  number          Int
+  activationCode  String    @unique @default(uuid())
+  appVersion      String    @default("0.0.0")
+  lastSyncAt      DateTime?
+  currentOperator String?
+  createdAt       DateTime  @default(now())
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, number])
+  @@index([tenantId])
+  @@map("pdv_devices")
+}
+
+// ─── PRODUCTS ─────────────────────────────────────────────────────────────────
+
+model Category {
+  id       String  @id @default(uuid())
+  tenantId String
+  name     String
+  parentId String?
+
+  products Product[]
+
+  @@index([tenantId])
+  @@map("categories")
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  tenantId     String
+  categoryId   String
+  sku          String
+  name         String
+  price        Float
+  costPrice    Float    @default(0)
+  stock        Int      @default(0)
+  minStock     Int      @default(0)
+  unit         String   @default("un")
+  barcode      String?
+  isWeighable  Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  customFields Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant        Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category      Category        @relation(fields: [categoryId], references: [id])
+  stockMovements StockMovement[]
+  saleItems     SaleItem[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
+  @@map("products")
+}
+
+model StockMovement {
+  id          String            @id @default(uuid())
+  productId   String
+  tenantId    String
+  type        StockMovementType
+  quantity    Int
+  reason      String
+  performedBy String
+  createdAt   DateTime          @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([tenantId])
+  @@map("stock_movements")
+}
+
+// ─── SALES ────────────────────────────────────────────────────────────────────
+
+model Sale {
+  id             String        @id @default(uuid())
+  tenantId       String
+  branchId       String
+  number         Int
+  status         SaleStatus    @default(open)
+  subtotal       Float
+  discount       Float         @default(0)
+  total          Float
+  paymentMethod  PaymentMethod
+  cashRegisterId String
+  operatorId     String
+  operatorName   String
+  customerId     String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tenant  Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch  Branch     @relation(fields: [branchId], references: [id])
+  items   SaleItem[]
+
+  @@unique([tenantId, number])
+  @@index([tenantId])
+  @@index([branchId])
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String @id @default(uuid())
+  saleId      String
+  productId   String
+  productName String
+  quantity    Float
+  unitPrice   Float
+  discount    Float  @default(0)
+  total       Float
+  customFields Json  @default("{}")
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([saleId])
+  @@map("sale_items")
+}
+
+// ─── CRM ──────────────────────────────────────────────────────────────────────
+
+model Contact {
+  id              String    @id @default(uuid())
+  tenantId        String
+  name            String
+  email           String?
+  phone           String?
+  document        String?
+  tags            String[]  @default([])
+  totalPurchases  Float     @default(0)
+  lastPurchaseAt  DateTime?
+  customFields    Json      @default("{}")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  deals   Deal[]
+
+  @@index([tenantId])
+  @@map("contacts")
+}
+
+model Deal {
+  id          String    @id @default(uuid())
+  tenantId    String
+  contactId   String
+  contactName String
+  title       String
+  value       Float
+  stage       DealStage @default(lead)
+  assignedTo  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contact Contact @relation(fields: [contactId], references: [id])
+
+  @@index([tenantId])
+  @@map("deals")
+}
+
+// ─── FINANCIAL ────────────────────────────────────────────────────────────────
+
+model Transaction {
+  id          String            @id @default(uuid())
+  tenantId    String
+  type        TransactionType
+  description String
+  amount      Float
+  dueDate     DateTime
+  paidAt      DateTime?
+  status      TransactionStatus @default(pending)
+  category    String
+  contactName String?
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dueDate])
+  @@map("transactions")
+}
+
+// ─── CUSTOM FIELDS ────────────────────────────────────────────────────────────
+
+model CustomFieldDef {
+  id         String @id @default(uuid())
+  tenantId   String
+  key        String
+  label      String
+  type       String
+  required   Boolean @default(false)
+  options    String[] @default([])
+  entityType String
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, entityType, key])
+  @@map("custom_field_defs")
+}
