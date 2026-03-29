@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Edit2, Plus, Play, Package, Users, ShoppingCart, BarChart2, DollarSign, Check } from 'lucide-react'
+import { Edit2, Plus, Play, Check } from 'lucide-react'
 import { MOCK_SEGMENT_TEMPLATES } from '@/mock/data'
 import type { SegmentTemplate, ModuleType } from '@/shared/types'
 import { moduleLabels } from '@/shared/utils/format'
@@ -418,7 +418,7 @@ function SegmentCard({ template }: { template: SegmentTemplate }) {
 export default function SegmentsPage() {
   const [activeDemo, setActiveDemo] = useState<string | null>(null)
 
-  const { data: segments, isLoading } = useQuery({
+  const { data: segments } = useQuery({
     queryKey: ['segments'],
     queryFn: async () => {
       await new Promise((r) => setTimeout(r, 400))

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Lock, ShoppingCart, Pill, Beef, Croissant, UtensilsCrossed, Shirt, Smartphone, Store } from 'lucide-react'
+import { Check, Lock } from 'lucide-react'
 import { MOCK_SEGMENT_TEMPLATES } from '@/mock/data'
 import type { WizardData } from './index'
 import type { SegmentType } from '@/shared/types'
@@ -12,17 +12,6 @@ interface Props {
   onUpdate: (d: Partial<WizardData>) => void
   onNext: () => void
   onPrev: () => void
-}
-
-const segmentIcons: Record<SegmentType, React.ReactNode> = {
-  pharmacy: <Pill className="h-6 w-6" />,
-  supermarket: <ShoppingCart className="h-6 w-6" />,
-  bakery: <Croissant className="h-6 w-6" />,
-  butcher: <Beef className="h-6 w-6" />,
-  restaurant: <UtensilsCrossed className="h-6 w-6" />,
-  clothing: <Shirt className="h-6 w-6" />,
-  electronics: <Smartphone className="h-6 w-6" />,
-  other: <Store className="h-6 w-6" />,
 }
 
 // ─── MINI ERP DEMO ───────────────────────────────────────────────

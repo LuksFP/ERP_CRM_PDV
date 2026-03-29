@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Check, Zap, Lock, ArrowRight, Star } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
@@ -80,6 +81,13 @@ interface UpgradeModalProps {
 export function UpgradeModal({ open, onClose, lockedModule }: UpgradeModalProps) {
   const config = useTenantConfig()
   const currentPlan = config.plan.name
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open, onClose])
 
   if (!open) return null
 

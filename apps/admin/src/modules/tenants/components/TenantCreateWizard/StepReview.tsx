@@ -1,8 +1,8 @@
-import { Check, Copy, ExternalLink, Loader2 } from 'lucide-react'
+import { Check, Copy, ExternalLink } from 'lucide-react'
 import { useState } from 'react'
 import type { WizardData } from './index'
 import { MOCK_PLANS, MOCK_SEGMENT_TEMPLATES } from '@/mock/data'
-import { formatCurrency, moduleLabels, segmentLabels } from '@/shared/utils/format'
+import { formatCurrency, moduleLabels } from '@/shared/utils/format'
 import { Button } from '@/shared/components/Button'
 import { Badge } from '@/shared/components/Badge'
 

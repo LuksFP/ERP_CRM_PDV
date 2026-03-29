@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Sun, Moon, ShoppingCart, Package, Users, DollarSign } from 'lucide-react'
 import type { WizardData } from './index'
 import { Button } from '@/shared/components/Button'
-import { Input } from '@/shared/components/Input'
 import { cn } from '@/shared/utils/cn'
 
 interface Props {

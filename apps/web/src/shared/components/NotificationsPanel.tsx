@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import {
   X, Package, AlertTriangle, ShoppingCart,
@@ -85,6 +85,13 @@ export function NotificationsPanel({ open, onClose }: NotificationsPanelProps) {
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
 
   const unread = notifications.filter((n) => !n.read)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [open, onClose])
 
   function markAllRead() {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))

@@ -185,9 +185,9 @@ function EditPlanModal({ open, onClose, plan }: { open: boolean; onClose: () => 
 }
 
 export default function PlansPage() {
-  const [createOpen, setCreateOpen] = useState(false)
+  const [_createOpen, setCreateOpen] = useState(false)
 
-  const { data: plans, isLoading } = useQuery({
+  const { data: plans } = useQuery({
     queryKey: ['plans'],
     queryFn: async () => {
       await new Promise((r) => setTimeout(r, 400))

@@ -5,7 +5,6 @@ import {
   CreditCard,
   Tag,
   BarChart3,
-  ChevronLeft,
   ChevronRight,
   ClipboardList,
   CalendarDays,

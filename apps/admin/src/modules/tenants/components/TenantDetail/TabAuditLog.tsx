@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Shield, AlertTriangle, ChevronDown } from 'lucide-react'
+import { Shield, ChevronDown } from 'lucide-react'
 import { MOCK_AUDIT_LOG } from '@/mock/data'
 import type { Tenant } from '@/shared/types'
 import { formatDateTime } from '@/shared/utils/format'

@@ -5,6 +5,7 @@ import { formatCurrency, formatDate, dealStageLabels } from '@/shared/utils/form
 import { useMockQuery } from '@/shared/hooks/useMockQuery'
 import { Badge } from '@/shared/components/Badge'
 import { Button } from '@/shared/components/Button'
+import { Modal } from '@/shared/components/Modal'
 import { Tabs } from '@/shared/components/Tabs'
 import { Skeleton } from '@/shared/components/Skeleton'
 import { cn } from '@/shared/utils/cn'
@@ -69,9 +70,87 @@ function KanbanColumn({ stage }: { stage: DealStage }) {
   )
 }
 
+function NewDealModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [form, setForm] = useState({ title: '', contactId: '', value: '', stage: 'lead' as DealStage, assignedTo: '' })
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }))
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Nova Oportunidade"
+      size="md"
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button onClick={onClose}>Criar Oportunidade</Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-xs font-mono uppercase tracking-widest text-ink-subtle mb-1.5">Título</label>
+          <input
+            value={form.title}
+            onChange={set('title')}
+            placeholder="Ex: Proposta para Farmácia Central"
+            className="w-full h-9 px-3 rounded-lg bg-surface-2 border border-border text-sm text-ink placeholder:text-ink-subtle focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-mono uppercase tracking-widest text-ink-subtle mb-1.5">Contato</label>
+          <select
+            value={form.contactId}
+            onChange={set('contactId')}
+            className="w-full h-9 px-3 rounded-lg bg-surface-2 border border-border text-sm text-ink focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          >
+            <option value="">Selecione um contato…</option>
+            {MOCK_CONTACTS.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-ink-subtle mb-1.5">Valor (R$)</label>
+            <input
+              type="number"
+              value={form.value}
+              onChange={set('value')}
+              placeholder="0,00"
+              className="w-full h-9 px-3 rounded-lg bg-surface-2 border border-border text-sm text-ink placeholder:text-ink-subtle focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-mono uppercase tracking-widest text-ink-subtle mb-1.5">Estágio</label>
+            <select
+              value={form.stage}
+              onChange={set('stage')}
+              className="w-full h-9 px-3 rounded-lg bg-surface-2 border border-border text-sm text-ink focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            >
+              {(['lead', 'contact', 'proposal', 'negotiation'] as DealStage[]).map((s) => (
+                <option key={s} value={s}>{dealStageLabels[s]}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-mono uppercase tracking-widest text-ink-subtle mb-1.5">Responsável</label>
+          <input
+            value={form.assignedTo}
+            onChange={set('assignedTo')}
+            placeholder="Nome do responsável"
+            className="w-full h-9 px-3 rounded-lg bg-surface-2 border border-border text-sm text-ink placeholder:text-ink-subtle focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+          />
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 export default function CRMPage() {
   const { isLoading } = useMockQuery(true, 650)
   const [tab, setTab] = useState('pipeline')
+  const [showNewDeal, setShowNewDeal] = useState(false)
 
   const totalPipeline = MOCK_DEALS.filter((d) => d.stage !== 'won' && d.stage !== 'lost')
     .reduce((s, d) => s + d.value, 0)
@@ -94,6 +173,8 @@ export default function CRMPage() {
 
   return (
     <div className="space-y-5 animate-fade-up">
+      <NewDealModal open={showNewDeal} onClose={() => setShowNewDeal(false)} />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -102,7 +183,7 @@ export default function CRMPage() {
             {MOCK_DEALS.length} oportunidades · {formatCurrency(totalPipeline)} em pipeline
           </p>
         </div>
-        <Button leftIcon={<Plus size={16} />}>Nova Oportunidade</Button>
+        <Button leftIcon={<Plus size={16} />} onClick={() => setShowNewDeal(true)}>Nova Oportunidade</Button>
       </div>
 
       {/* KPIs */}

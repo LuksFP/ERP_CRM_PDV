@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Check, ChevronRight } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import { Button } from '@/shared/components/Button'
@@ -58,6 +58,27 @@ export function TenantCreateWizard({ open, onClose }: TenantCreateWizardProps) {
   const [creating, setCreating] = useState(false)
   const [done, setDone] = useState(false)
 
+  const handleClose = () => {
+    setStep(1)
+    setData({
+      primaryColor: '#E2A336',
+      accentColor: '#5CB870',
+      defaultTheme: 'dark',
+      tempPassword: generatePassword(),
+      sendCredentials: true,
+    })
+    setDone(false)
+    onClose()
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
   if (!open) return null
 
   const updateData = (partial: Partial<WizardData>) => {
@@ -72,19 +93,6 @@ export function TenantCreateWizard({ open, onClose }: TenantCreateWizardProps) {
     await new Promise((r) => setTimeout(r, 2000))
     setCreating(false)
     setDone(true)
-  }
-
-  const handleClose = () => {
-    setStep(1)
-    setData({
-      primaryColor: '#E2A336',
-      accentColor: '#5CB870',
-      defaultTheme: 'dark',
-      tempPassword: generatePassword(),
-      sendCredentials: true,
-    })
-    setDone(false)
-    onClose()
   }
 
   return (

@@ -13,16 +13,6 @@ import { EmptyState } from '@/shared/components/EmptyState'
 
 interface Props { tenant: Tenant }
 
-function countUsersInTree(users: ReturnType<typeof Object.values>[number]): number {
-  let count = 0
-  for (const user of users as Array<{ children?: unknown[] }>) {
-    count++
-    if (user.children) {
-      count += countUsersInTree(user.children as typeof users)
-    }
-  }
-  return count
-}
 
 export function TabUsersHierarchy({ tenant }: Props) {
   const [roleFilter, setRoleFilter] = useState<TenantRole | 'all'>('all')
