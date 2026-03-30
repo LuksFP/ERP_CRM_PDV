@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, ArrowUpRight, TrendingUp, TrendingDown, Activity, Users, Monitor, RefreshCw, SlidersHorizontal, RotateCcw, Check } from 'lucide-react'
+import { AlertTriangle, ArrowUpRight, TrendingUp, TrendingDown, Activity, Users, Monitor, RefreshCw, SlidersHorizontal, RotateCcw, Check, CheckCircle2, Circle, Wifi, WifiOff, Clock } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useState, useRef, useEffect } from 'react'
 import {
   MOCK_DASHBOARD_METRICS, MOCK_ACTIVITY, MOCK_UPSELL, MOCK_MRR_HISTORY,
-  MOCK_PLAN_DISTRIBUTION, MOCK_SEGMENT_DISTRIBUTION,
+  MOCK_PLAN_DISTRIBUTION, MOCK_SEGMENT_DISTRIBUTION, MOCK_TENANTS,
 } from '@/mock/data'
 import { formatCurrency, formatNumber, formatRelativeTime, segmentLabels } from '@/shared/utils/format'
 import { Badge } from '@/shared/components/Badge'
@@ -582,6 +582,203 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ── SETUP SCORE + HEALTH CHECK ─────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+
+        {/* Setup Score */}
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>
+              Setup Score
+            </p>
+            <span style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)', background: 'var(--surface-3)', padding: '2px 7px', borderRadius: 10 }}>
+              Onboarding
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {MOCK_TENANTS.slice(0, 5).map((tenant) => {
+              const checks = [
+                { label: 'Logo',     done: !!tenant.branding.logoUrl },
+                { label: 'PDV',      done: tenant.usage.pdvs > 0 },
+                { label: 'Produtos', done: tenant.usage.productsSKU > 10 },
+                { label: 'Equipe',   done: tenant.usage.users > 1 },
+                { label: 'Sync',     done: !!tenant.lastPdvSyncAt },
+              ]
+              const score = checks.filter(c => c.done).length
+              const pct = (score / checks.length) * 100
+              return (
+                <Link key={tenant.id} to="/tenants/$tenantId" params={{ tenantId: tenant.id }} style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{tenant.name}</span>
+                        <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 700, color: pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--yellow)' : 'var(--red)', flexShrink: 0 }}>{pct.toFixed(0)}%</span>
+                      </div>
+                      <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 4, overflow: 'hidden', marginBottom: 4 }}>
+                        <div style={{ height: '100%', borderRadius: 4, width: `${pct}%`, background: pct >= 100 ? 'var(--green)' : pct >= 60 ? 'var(--yellow)' : 'var(--red)', transition: 'width 0.6s' }} />
+                      </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {checks.map((c) => (
+                          <div key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            {c.done
+                              ? <CheckCircle2 size={9} color="var(--green)" />
+                              : <Circle size={9} color="var(--fg-dim)" style={{ opacity: 0.4 }} />
+                            }
+                            <span style={{ fontSize: 8, fontFamily: 'Geist Mono', color: 'var(--fg-dim)', opacity: c.done ? 1 : 0.4 }}>{c.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Health Check */}
+        <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>
+              Health Check
+            </p>
+            <span style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--green)', background: 'rgba(77,184,100,0.1)', border: '1px solid rgba(77,184,100,0.2)', padding: '2px 7px', borderRadius: 10 }}>
+              Live
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {MOCK_TENANTS.slice(0, 5).map((tenant) => {
+              const lastSync = tenant.lastPdvSyncAt ? new Date(tenant.lastPdvSyncAt) : null
+              const minsAgo = lastSync ? Math.floor((Date.now() - lastSync.getTime()) / 60_000) : null
+              const isOnline = minsAgo !== null && minsAgo < 60
+              const isWarning = minsAgo !== null && minsAgo >= 60 && minsAgo < 240
+              const statusColor = !lastSync ? 'var(--fg-dim)' : isOnline ? 'var(--green)' : isWarning ? 'var(--yellow)' : 'var(--red)'
+              const syncLabel = !lastSync ? 'Nunca' : minsAgo! < 60 ? `${minsAgo}min` : minsAgo! < 1440 ? `${Math.floor(minsAgo! / 60)}h` : `${Math.floor(minsAgo! / 1440)}d`
+
+              return (
+                <Link
+                  key={tenant.id}
+                  to="/tenants/$tenantId"
+                  params={{ tenantId: tenant.id }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6, background: isOnline ? 'rgba(77,184,100,0.1)' : 'rgba(212,100,74,0.1)', flexShrink: 0 }}>
+                    {isOnline
+                      ? <Wifi size={11} color="var(--green)" />
+                      : <WifiOff size={11} color="var(--red)" />
+                    }
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--fg)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{tenant.name}</span>
+                    <span style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)' }}>
+                      {tenant.usage.pdvs} PDV{tenant.usage.pdvs !== 1 ? 's' : ''} · {tenant.usage.users} usuário{tenant.usage.users !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                    <Clock size={9} color="var(--fg-dim)" />
+                    <span style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, color: statusColor }}>{syncLabel}</span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── SALES HEATMAP ──────────────────────────────────────────────────── */}
+      <SalesHeatmap />
+
+    </div>
+  )
+}
+
+// ─── SALES HEATMAP ────────────────────────────────────────────────────────────
+const DAYS   = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const HOURS  = Array.from({ length: 24 }, (_, i) => i)
+
+function genHeatmap() {
+  return DAYS.map((_day, di) =>
+    HOURS.map((h) => {
+      const isPeak    = (h >= 11 && h <= 13) || (h >= 18 && h <= 20)
+      const isMorning = h >= 7 && h <= 10
+      const isWeekend = di === 0 || di === 6
+      const base = isPeak ? 60 + Math.random() * 40
+        : isMorning ? 20 + Math.random() * 20
+        : Math.random() * 15
+      const v = (h < 7 || h > 22) ? Math.random() * 5 : isWeekend ? base * 1.35 : base
+      return Math.round(v)
+    })
+  )
+}
+
+// stable across renders
+const HEATMAP_DATA = genHeatmap()
+const MAX_VAL = Math.max(...HEATMAP_DATA.flat())
+
+function cellColor(v: number) {
+  if (v === 0) return 'transparent'
+  const t = v / MAX_VAL
+  // dark amber → bright accent
+  const r = Math.round(232 * t)
+  const g = Math.round(168 * t)
+  const b = Math.round(48 * t)
+  return `rgba(${r},${g},${b},${0.15 + t * 0.85})`
+}
+
+function SalesHeatmap() {
+  return (
+    <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '18px 20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <p style={{ fontFamily: 'Geist Mono', fontSize: 10, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--fg-dim)' }}>
+          Mapa de Calor de Vendas
+        </p>
+        <span style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)', background: 'var(--surface-3)', padding: '2px 7px', borderRadius: 10 }}>
+          Hora × Dia da semana
+        </span>
+      </div>
+
+      {/* Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '28px repeat(24, 1fr)', gap: 2, overflowX: 'auto' }}>
+        {/* Hour labels row */}
+        <div />
+        {HOURS.map((h) => (
+          <div key={h} style={{ fontFamily: 'Geist Mono', fontSize: 8, color: 'var(--fg-dim)', textAlign: 'center', paddingBottom: 4, opacity: h % 3 === 0 ? 1 : 0 }}>
+            {h % 3 === 0 ? `${h}h` : ''}
+          </div>
+        ))}
+
+        {/* Day rows */}
+        {DAYS.map((dayLabel, di) => (
+          <>
+            <div key={`label-${dayLabel}`} style={{ fontFamily: 'Geist Mono', fontSize: 9, color: 'var(--fg-dim)', display: 'flex', alignItems: 'center', paddingRight: 4 }}>
+              {dayLabel}
+            </div>
+            {HEATMAP_DATA[di]?.map((v, h) => (
+              <div
+                key={`${di}-${h}`}
+                title={`${dayLabel} ${h}h: ${v} vendas`}
+                style={{
+                  height: 18,
+                  borderRadius: 3,
+                  background: cellColor(v),
+                  cursor: 'default',
+                  transition: 'opacity 0.1s',
+                }}
+              />
+            ))}
+          </>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, justifyContent: 'flex-end' }}>
+        <span style={{ fontSize: 9, fontFamily: 'Geist Mono', color: 'var(--fg-dim)' }}>Baixo</span>
+        {[0.1, 0.3, 0.5, 0.7, 0.9].map((t) => (
+          <div key={t} style={{ width: 14, height: 14, borderRadius: 2, background: cellColor(Math.round(t * MAX_VAL)) }} />
+        ))}
+        <span style={{ fontSize: 9, fontFamily: 'Geist Mono', color: 'var(--fg-dim)' }}>Alto</span>
+      </div>
     </div>
   )
 }

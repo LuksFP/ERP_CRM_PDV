@@ -4,6 +4,7 @@ import type { SegmentType } from '@/shared/types'
 
 export type CardStyle = 'default' | 'glass' | 'solid'
 export type ButtonShape = 'rounded' | 'sharp' | 'pill'
+export type PDVMode = 'caixa' | 'comanda'
 
 export interface PDVTheme {
   backgroundPreset: SegmentType | 'none' | 'custom'
@@ -13,6 +14,9 @@ export interface PDVTheme {
   buttonShape: ButtonShape
   accentOverride: string       // '' = usa acento do tenant
   compactMode: boolean
+  pdvMode: PDVMode
+  soundEnabled: boolean
+  trainingMode: boolean
 }
 
 export const SEGMENT_GRADIENTS: Record<SegmentType, { gradient: string; label: string; emoji: string }> = {
@@ -34,6 +38,9 @@ export const DEFAULT_THEME: PDVTheme = {
   buttonShape: 'rounded',
   accentOverride: '',
   compactMode: false,
+  pdvMode: 'caixa',
+  soundEnabled: true,
+  trainingMode: false,
 }
 
 interface PDVThemeStore {

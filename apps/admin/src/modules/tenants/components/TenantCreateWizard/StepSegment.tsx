@@ -198,7 +198,7 @@ export function StepSegment({ data, onUpdate, onNext, onPrev }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Modules */}
               <div>
                 <p className="text-xs font-mono uppercase tracking-wide text-fg-dim mb-2">

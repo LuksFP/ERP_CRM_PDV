@@ -24,15 +24,6 @@ export function TenantThemeInjector({ branding }: { branding: TenantBranding }) 
     root.style.setProperty('--accent2-dim', withAlpha(accent, 0.12))
     root.style.setProperty('--accent2-contrast', getContrastText(accent))
 
-    // ── Theme class ───────────────────────────────────────────────
-    if (branding.darkMode) {
-      root.classList.add('dark')
-      root.classList.remove('light')
-    } else {
-      root.classList.remove('dark')
-      root.classList.add('light')
-    }
-
     return () => {
       // cleanup when tenant changes / logout
       root.style.removeProperty('--accent')

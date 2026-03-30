@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useUIStore } from '@/shared/store/ui'
 import { useAuthStore } from '@/modules/auth/store'
 import { TenantThemeInjector } from '@/design-system/theme-provider'
@@ -11,18 +11,28 @@ const queryClient = new QueryClient({
 })
 
 function ThemeSync() {
-  const theme = useUIStore((s) => s.theme)
+  const { theme, setTheme } = useUIStore()
   const tenantConfig = useAuthStore((s) => s.tenantConfig)
+  const seeded = useRef(false)
 
-  // Sync UI store theme → dark class (but tenant branding takes priority when logged in)
+  // On first login, seed UIStore from tenant branding.darkMode
   useEffect(() => {
-    if (tenantConfig) return // TenantThemeInjector handles it
+    if (!tenantConfig || seeded.current) return
+    seeded.current = true
+    setTheme(tenantConfig.branding.darkMode ? 'dark' : 'light')
+  }, [tenantConfig, setTheme])
+
+  // Always apply theme class — UIStore is source of truth at runtime
+  useEffect(() => {
+    const root = document.documentElement
     if (theme === 'dark') {
-      document.documentElement.classList.add('dark')
+      root.classList.add('dark')
+      root.classList.remove('light')
     } else {
-      document.documentElement.classList.remove('dark')
+      root.classList.remove('dark')
+      root.classList.add('light')
     }
-  }, [theme, tenantConfig])
+  }, [theme])
 
   return null
 }

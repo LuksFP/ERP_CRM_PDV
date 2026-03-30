@@ -330,7 +330,7 @@ function SegmentCard({ template }: { template: SegmentTemplate }) {
         <div className="flex flex-col gap-4">
           <AnimatedERPDemo segmentType={template.type} active={demoOpen} />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <p className="text-xs font-mono uppercase tracking-wide text-fg-dim mb-2">Módulos pré-ativados</p>
               <div className="flex flex-wrap gap-1">
@@ -369,7 +369,7 @@ function SegmentCard({ template }: { template: SegmentTemplate }) {
         }
       >
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-medium text-fg-muted uppercase tracking-wide">Nome</label>
               <input

@@ -15,6 +15,8 @@ const FinancialPage = React.lazy(() => import('@/modules/financial/pages/Financi
 const TeamPage = React.lazy(() => import('@/modules/team/pages/TeamPage'))
 const BranchesPage = React.lazy(() => import('@/modules/branches/pages/BranchesPage'))
 const SettingsPage = React.lazy(() => import('@/modules/settings/pages/SettingsPage'))
+const PDVDisplayPage = React.lazy(() => import('@/modules/pdv/pages/PDVDisplayPage'))
+const CardapioPage   = React.lazy(() => import('@/modules/pdv/pages/CardapioPage'))
 
 function PageLoader() {
   return (
@@ -98,6 +100,10 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  // PDV Display (public — no auth)
+  { path: '/display',  element: wrap(<PDVDisplayPage />) },
+  // Digital menu (public — no auth)
+  { path: '/cardapio', element: wrap(<CardapioPage />) },
   // Fallback
   { path: '*', element: <Navigate to="/dashboard" replace /> },
 ])

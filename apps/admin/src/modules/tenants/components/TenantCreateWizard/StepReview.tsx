@@ -118,7 +118,7 @@ export function StepReview({ data, onPrev, onCreate, creating, done, onClose }: 
         <ReviewRow label="Email" value={data.email} />
       </ReviewSection>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <ReviewSection title="Segmento">
           <div className="flex items-center gap-2">
             <span className="text-xl">{template?.icon}</span>

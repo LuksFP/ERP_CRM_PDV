@@ -139,7 +139,7 @@ export function StepBasicData({ data, onUpdate, onNext }: Props) {
         {...register('cnpj')}
       />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
           label="Telefone"
           placeholder="(11) 99999-9999"

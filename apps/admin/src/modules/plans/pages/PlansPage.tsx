@@ -152,11 +152,11 @@ function EditPlanModal({ open, onClose, plan }: { open: boolean; onClose: () => 
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="Nome do plano" defaultValue={plan.name} />
           <Input label="Preço mensal (R$)" type="number" defaultValue={String(plan.priceMonthly)} />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Input label="Máx. usuários" type="number" defaultValue={String(plan.limits.maxUsers === 9999 ? '' : plan.limits.maxUsers)} placeholder="9999 = ilimitado" />
           <Input label="Máx. PDVs" type="number" defaultValue={String(plan.limits.maxPDVs)} />
           <Input label="Máx. filiais" type="number" defaultValue={String(plan.limits.maxBranches)} />

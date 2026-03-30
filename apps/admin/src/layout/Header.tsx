@@ -8,6 +8,8 @@ import { useUIStore } from '@/shared/store/ui'
 import { useAuthStore } from '@/modules/auth/store'
 import { Button } from '@/shared/components/Button'
 import { cn } from '@/shared/utils/cn'
+import { NotificationsPanel } from '@/shared/components/NotificationsPanel'
+import { useNotificationsStore } from '@/shared/store/notifications'
 
 const PAGE_META: Record<string, { label: string; icon: React.ElementType }> = {
   '/dashboard':            { label: 'Dashboard',       icon: LayoutDashboard },
@@ -29,7 +31,10 @@ const ROLE_LABEL: Record<string, string> = {
 export function Header() {
   const { theme, toggleTheme } = useUIStore()
   const { user, logout } = useAuthStore()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen]   = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const { notifications }         = useNotificationsStore()
+  const unreadCount = notifications.filter((n) => !n.read).length
   const routerState = useRouterState()
 
   const pathname = routerState.location.pathname
@@ -63,15 +68,25 @@ export function Header() {
         />
 
         {/* Notifications */}
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={<Bell className="h-4 w-4" />}
-          aria-label="Notificações"
-          className="relative"
-        >
-          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
-        </Button>
+        <div className="relative">
+          <button
+            onClick={() => { setNotifOpen((v) => !v); setMenuOpen(false) }}
+            aria-label="Notificações"
+            className={cn(
+              'relative flex items-center justify-center h-8 w-8 rounded-lg transition-colors',
+              'text-fg-muted hover:text-fg hover:bg-surface-2',
+              notifOpen && 'bg-surface-2 text-fg',
+            )}
+          >
+            <Bell className="h-4 w-4" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 flex items-center justify-center h-3.5 min-w-[0.875rem] px-0.5 rounded-full text-[8px] font-bold text-white" style={{ background: 'var(--accent)' }}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+          <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
+        </div>
 
         {/* User menu */}
         <div className="relative">

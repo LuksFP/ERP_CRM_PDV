@@ -176,7 +176,7 @@ function MemberModal({ member, onClose }: MemberModalProps) {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Basic info */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           <Input label="Nome *" value={name} onChange={e => setName(e.target.value)} placeholder="Nome completo" />
           <Input label="E-mail *" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@empresa.com" />
         </div>
@@ -309,15 +309,15 @@ export default function TeamPage() {
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, alignItems: 'center' }}>
-        <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 180 }}>
           <Input
             placeholder="Buscar por nome ou e-mail..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {(['all', 'superadmin', 'support', 'sales', 'technician'] as const).map(r => {
             const active = roleFilter === r
             return (

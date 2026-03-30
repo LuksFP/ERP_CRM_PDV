@@ -220,6 +220,7 @@ function DetailModal({ os, onClose, onUpdate }: DetailModalProps) {
     <Modal
       open
       onClose={onClose}
+      title={os.number}
       size="xl"
       footer={
         <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'space-between' }}>
@@ -256,10 +257,7 @@ function DetailModal({ os, onClose, onUpdate }: DetailModalProps) {
       </div>
 
       {/* Info Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: 16,
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{
         background: 'var(--surface-2)',
         border: '1px solid var(--border)',
         borderRadius: 8,

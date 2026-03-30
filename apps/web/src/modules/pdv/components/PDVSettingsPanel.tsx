@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, RotateCcw, Palette, Image, SlidersHorizontal, Layers } from 'lucide-react'
+import { X, RotateCcw, Palette, Image, SlidersHorizontal, Layers, ShoppingBag, UtensilsCrossed, Volume2, VolumeX, FlaskConical, Keyboard } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import { usePDVThemeStore, SEGMENT_GRADIENTS } from '../store/pdvTheme'
-import type { CardStyle, ButtonShape } from '../store/pdvTheme'
+import { usePDVShortcutsStore, SHORTCUT_LABELS, DEFAULT_SHORTCUTS } from '../store/pdvShortcutsStore'
+import type { CardStyle, ButtonShape, PDVMode } from '../store/pdvTheme'
 import type { SegmentType } from '@/shared/types'
 
 interface PDVSettingsPanelProps {
@@ -46,14 +47,27 @@ function OptionPill({
 }
 
 export function PDVSettingsPanel({ open, onClose, tenantAccent, segment }: PDVSettingsPanelProps) {
-  const { theme, setTheme, resetTheme } = usePDVThemeStore()
+  const { theme, setTheme, resetTheme }           = usePDVThemeStore()
+  const { shortcuts, setShortcut, resetShortcuts } = usePDVShortcutsStore()
+  const [capturingKey, setCapturingKey]            = useState<keyof typeof SHORTCUT_LABELS | null>(null)
 
   useEffect(() => {
     if (!open) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [open, onClose])
+    const handler = (e: KeyboardEvent) => {
+      if (capturingKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e.key !== 'Escape') {
+          setShortcut(capturingKey, e.key)
+        }
+        setCapturingKey(null)
+        return
+      }
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handler, { capture: true })
+    return () => window.removeEventListener('keydown', handler, { capture: true })
+  }, [open, onClose, capturingKey, setShortcut])
 
   if (!open) return null
 
@@ -99,6 +113,31 @@ export function PDVSettingsPanel({ open, onClose, tenantAccent, segment }: PDVSe
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+
+          {/* ── Modo PDV ─────────────────────────── */}
+          <Section icon={<ShoppingBag size={13} />} title="Modo de Operação">
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { id: 'caixa',   label: 'Caixa Rápido', desc: 'Venda direta, sem mesas', Icon: ShoppingBag },
+                { id: 'comanda', label: 'Comanda',        desc: 'Mesas e comandas', Icon: UtensilsCrossed },
+              ] as { id: PDVMode; label: string; desc: string; Icon: React.ElementType }[]).map(({ id, label, desc, Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setTheme({ pdvMode: id })}
+                  className={cn(
+                    'flex flex-col items-center gap-1.5 py-3 px-2 rounded-lg border text-center transition-all',
+                    theme.pdvMode === id
+                      ? 'bg-white/15 border-white/30 text-white'
+                      : 'bg-white/5 border-white/8 text-white/50 hover:bg-white/10 hover:text-white/70',
+                  )}
+                >
+                  <Icon size={18} />
+                  <span className="text-xs font-semibold">{label}</span>
+                  <span className="text-[9px] opacity-70">{desc}</span>
+                </button>
+              ))}
+            </div>
+          </Section>
 
           {/* ── Background ───────────────────────── */}
           <Section icon={<Image size={13} />} title="Background">
@@ -318,6 +357,85 @@ export function PDVSettingsPanel({ open, onClose, tenantAccent, segment }: PDVSe
                 />
               </button>
             </label>
+          </Section>
+
+          {/* ── Sons & Treinamento ────────────────── */}
+          <Section icon={<Volume2 size={13} />} title="Sons & Modo">
+            <div className="space-y-3">
+              {/* Sound toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <div className="flex items-center gap-2">
+                  {theme.soundEnabled ? <Volume2 size={14} className="text-white/50" /> : <VolumeX size={14} className="text-white/30" />}
+                  <div>
+                    <p className="text-xs text-white/70">Sons do PDV</p>
+                    <p className="text-[10px] text-white/35 mt-0.5">Beep ao adicionar, som ao finalizar</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setTheme({ soundEnabled: !theme.soundEnabled })}
+                  className={cn(
+                    'relative w-9 h-5 rounded-full transition-colors shrink-0',
+                    theme.soundEnabled ? 'bg-white/60' : 'bg-white/15',
+                  )}
+                >
+                  <span className={cn('absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform shadow', theme.soundEnabled ? 'translate-x-4' : 'translate-x-0.5')} />
+                </button>
+              </label>
+
+              {/* Training mode toggle */}
+              <label className="flex items-center justify-between cursor-pointer">
+                <div className="flex items-center gap-2">
+                  <FlaskConical size={14} className={theme.trainingMode ? 'text-amber-400' : 'text-white/30'} />
+                  <div>
+                    <p className="text-xs text-white/70">Modo Treinamento</p>
+                    <p className="text-[10px] text-white/35 mt-0.5">Vendas não são registradas</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setTheme({ trainingMode: !theme.trainingMode })}
+                  className={cn(
+                    'relative w-9 h-5 rounded-full transition-colors shrink-0',
+                    theme.trainingMode ? 'bg-amber-500/70' : 'bg-white/15',
+                  )}
+                >
+                  <span className={cn('absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform shadow', theme.trainingMode ? 'translate-x-4' : 'translate-x-0.5')} />
+                </button>
+              </label>
+            </div>
+          </Section>
+
+          {/* ── Atalhos de teclado ────────────────── */}
+          <Section icon={<Keyboard size={13} />} title="Atalhos de Teclado">
+            <div className="space-y-2">
+              {(Object.entries(SHORTCUT_LABELS) as [keyof typeof SHORTCUT_LABELS, string][]).map(([action, label]) => (
+                <div key={action} className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-white/60 flex-1">{label}</span>
+                  <button
+                    onClick={() => setCapturingKey(capturingKey === action ? null : action)}
+                    className={cn(
+                      'min-w-[3.5rem] px-2 py-1 text-[11px] font-mono rounded-lg border transition-all text-center',
+                      capturingKey === action
+                        ? 'bg-white/20 border-white/50 text-white animate-pulse'
+                        : 'bg-white/6 border-white/12 text-white/70 hover:bg-white/12 hover:border-white/25',
+                    )}
+                  >
+                    {capturingKey === action ? '...' : shortcuts[action]}
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={() => { resetShortcuts(); setCapturingKey(null) }}
+                className="mt-2 text-[10px] text-white/30 hover:text-white/60 transition-colors flex items-center gap-1"
+              >
+                <RotateCcw size={10} />
+                Restaurar padrões ({Object.values(DEFAULT_SHORTCUTS).join(', ')})
+              </button>
+            </div>
+            {capturingKey && (
+              <p className="mt-2 text-[10px] text-amber-400/80 text-center">
+                Pressione qualquer tecla para "{SHORTCUT_LABELS[capturingKey]}" · Esc para cancelar
+              </p>
+            )}
           </Section>
         </div>
       </div>
