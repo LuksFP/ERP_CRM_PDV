@@ -65,7 +65,7 @@ export default function OnboardingPage() {
                   className={cn(
                     'w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300',
                     done
-                      ? 'bg-[var(--accent)] text-[var(--accent-contrast)]'
+                      ? 'bg-[var(--accent-bg,var(--accent))] text-[var(--accent-contrast)]'
                       : active
                       ? 'bg-[var(--accent-dim)] border-2 border-[var(--accent)] text-[var(--accent)]'
                       : 'bg-surface-2 text-ink-subtle'
@@ -77,7 +77,7 @@ export default function OnboardingPage() {
                   <div
                     className={cn(
                       'h-0.5 w-8 rounded transition-all duration-500',
-                      done ? 'bg-[var(--accent)]' : 'bg-surface-3'
+                      done ? 'bg-[var(--accent-bg,var(--accent))]' : 'bg-surface-3'
                     )}
                   />
                 )}
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
             <div className="p-8 text-center space-y-4 animate-fade-up">
               <div
                 className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg"
-                style={{ background: 'var(--accent)', color: 'var(--accent-contrast)' }}
+                style={{ background: 'var(--accent-bg, var(--accent))', color: 'var(--accent-contrast)' }}
               >
                 {tenantConfig.branding.name.charAt(0)}
               </div>

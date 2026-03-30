@@ -27,7 +27,7 @@
     --accent-dim: rgba(232, 168, 48, 0.10);
     --fg: #EDE5D8;
     --fg-muted: #A89F91;
-    --fg-dim: #5E584F;
+    --fg-dim: #807972;    /* ↑ 2.83 → 4.64 : 1 vs bg */
     --green: #4DB864;
     --red: #D4644A;
     --yellow: #D4A84A;
@@ -44,14 +44,14 @@
     --surface-3: #EDE9E3;
     --border: rgba(60, 50, 38, 0.08);
     --border-hover: rgba(60, 50, 38, 0.15);
-    --accent: #C48820;
-    --accent-dim: rgba(196, 136, 32, 0.08);
+    --accent: #8A6614;         /* dark amber for text — 4.96:1 vs bg */
+    --accent-dim: rgba(138, 102, 20, 0.10);
     --fg: #1A1714;
     --fg-muted: #6B6358;
-    --fg-dim: #A89F91;
-    --green: #2D8A42;
+    --fg-dim: #706A62;         /* ↑ 2.47 → 5.04 : 1 vs bg */
+    --green: #27793A;          /* ↑ 4.11 → 5.10 : 1 vs bg */
     --red: #C0392B;
-    --yellow: #B8860B;
+    --yellow: #8E6A0E;         /* ↑ 3.07 → 4.70 : 1 vs bg */
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
     --shadow-lg: 0 4px 16px rgba(0,0,0,0.10);

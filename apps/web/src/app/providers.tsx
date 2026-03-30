@@ -39,8 +39,9 @@ function ThemeSync() {
 
 function TenantTheme() {
   const tenantConfig = useAuthStore((s) => s.tenantConfig)
+  const { theme } = useUIStore()
   if (!tenantConfig) return null
-  return <TenantThemeInjector branding={tenantConfig.branding} />
+  return <TenantThemeInjector branding={tenantConfig.branding} theme={theme} />
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {

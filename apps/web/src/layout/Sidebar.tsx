@@ -69,7 +69,7 @@ export function Sidebar() {
           style={{
             width: 28, height: 28,
             borderRadius: 7,
-            background: 'var(--accent)',
+            background: 'var(--accent-bg, var(--accent))',
             color: 'var(--accent-contrast)',
             fontSize: 13,
             position: 'relative',

@@ -120,7 +120,7 @@ export function Header({ onOpenCommandPalette }: HeaderProps) {
             >
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                style={{ background: 'var(--accent)', color: 'var(--accent-contrast)' }}
+                style={{ background: 'var(--accent-bg, var(--accent))', color: 'var(--accent-contrast)' }}
               >
                 {user.name.charAt(0)}
               </div>
