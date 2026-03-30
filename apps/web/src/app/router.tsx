@@ -12,6 +12,7 @@ const InventoryPage = React.lazy(() => import('@/modules/inventory/pages/Invento
 const PDVPage = React.lazy(() => import('@/modules/pdv/pages/PDVPage'))
 const CRMPage = React.lazy(() => import('@/modules/crm/pages/CRMPage'))
 const FinancialPage = React.lazy(() => import('@/modules/financial/pages/FinancialPage'))
+const FiscalPage    = React.lazy(() => import('@/modules/fiscal/pages/FiscalPage'))
 const TeamPage = React.lazy(() => import('@/modules/team/pages/TeamPage'))
 const BranchesPage = React.lazy(() => import('@/modules/branches/pages/BranchesPage'))
 const SettingsPage = React.lazy(() => import('@/modules/settings/pages/SettingsPage'))
@@ -93,6 +94,7 @@ export const router = createBrowserRouter([
           { path: '/pdv',        element: wrap(<PDVPage />) },
           { path: '/crm',        element: wrap(<CRMPage />) },
           { path: '/financial',  element: wrap(<FinancialPage />) },
+          { path: '/fiscal',     element: wrap(<FiscalPage />) },
           { path: '/team',       element: wrap(<TeamPage />) },
           { path: '/branches',   element: wrap(<BranchesPage />) },
           { path: '/settings',   element: wrap(<SettingsPage />) },

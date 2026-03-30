@@ -31,7 +31,7 @@ const MODULE_PATHS: Record<ModuleKey, string> = {
   pdv:        '/pdv',
   crm:        '/crm',
   financial:  '/financial',
-  fiscal:     '/financial',
+  fiscal:     '/fiscal',
   purchasing: '/inventory',
   team:       '/team',
   branches:   '/branches',
