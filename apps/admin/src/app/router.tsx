@@ -22,6 +22,7 @@ const ServiceOrdersPage = lazy(() => import('@/modules/tools/pages/ServiceOrders
 const AgendaPage = lazy(() => import('@/modules/tools/pages/AgendaPage'))
 const TeamPage = lazy(() => import('@/modules/team/pages/TeamPage'))
 const PersonalizarPage = lazy(() => import('@/modules/personalizar/pages/PersonalizarPage'))
+const DownloadsPage    = lazy(() => import('@/modules/downloads/pages/DownloadsPage'))
 
 function PageLoader() {
   return (
@@ -76,6 +77,15 @@ const toolsGuard = () => {
   }
   const perms = ROLE_PERMISSIONS[user.role]
   if (!perms.canUseTools) {
+    throw redirect({ to: '/dashboard' })
+  }
+}
+
+const downloadsGuard = () => {
+  const { user, isAuthenticated } = useAuthStore.getState()
+  if (!isAuthenticated) throw redirect({ to: '/login' })
+  if (!user) throw redirect({ to: '/dashboard' })
+  if (user.role !== 'superadmin' && user.role !== 'technician') {
     throw redirect({ to: '/dashboard' })
   }
 }
@@ -177,6 +187,13 @@ const personalizarRoute = createRoute({
   component: withSuspense(PersonalizarPage),
 })
 
+const downloadsRoute = createRoute({
+  getParentRoute: () => protectedLayoutRoute,
+  path: '/downloads',
+  beforeLoad: downloadsGuard,
+  component: withSuspense(DownloadsPage),
+})
+
 // ─── ROUTER ──────────────────────────────────────────────────────
 const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -192,6 +209,7 @@ const routeTree = rootRoute.addChildren([
     agendaRoute,
     teamRoute,
     personalizarRoute,
+    downloadsRoute,
   ]),
 ])
 

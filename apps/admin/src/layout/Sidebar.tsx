@@ -11,6 +11,7 @@ import {
   Users,
   Palette,
   PanelLeftClose,
+  Download,
 } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import { useUIStore } from '@/shared/store/ui'
@@ -48,6 +49,7 @@ const ADMIN_NAV: NavItem[] = [
 const TOOLS_NAV: NavItem[] = [
   { path: '/tools/service-orders', label: 'Ordem de Serviço', icon: ClipboardList, allowedRoles: ['superadmin', 'support', 'technician'] },
   { path: '/tools/agenda',         label: 'Agenda',           icon: CalendarDays,  allowedRoles: ['superadmin', 'support', 'technician'] },
+  { path: '/downloads',            label: 'Downloads',         icon: Download,      allowedRoles: ['superadmin', 'technician'] },
 ]
 
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
